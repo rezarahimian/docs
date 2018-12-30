@@ -57,6 +57,8 @@ Recommendation
 ##############
 Recommendation is always use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code will helps to be in compliance with best practices.
 
+References
+##########
 .. [1] PeckShield, "New batchOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018–10299)," 22 4 2018. [Online]. Available: https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536 [Accessed 26 12 2018].
 
 .. [2] M. Mulders, "Binance Hack Linked To Viacoin Pump (Official Update)," 7 3 2018. [Online]. Available: https://hackernoon.com/alleged-hack-of-binance-linked-to-viacoin-pump-bb9066bf96bf [Accessed 26 12 2018].
