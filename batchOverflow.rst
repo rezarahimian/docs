@@ -43,7 +43,7 @@ We initially set ``c=0x3`` to check its result before and after multiplication o
     
     Figure 2: Result of addition operation in case of integer overflow
     
-Ethereum executes *a_multiply_b()* function in unchecked context and shows successful status by returning ```true`` as output:
+Ethereum executes *a_multiply_b()* function in unchecked context and shows successful status by returning ``true`` as output:
 
 .. figure:: images/batch_overflow_03.png
     :align: center
