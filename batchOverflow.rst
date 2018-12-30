@@ -6,14 +6,14 @@ Description
 ###########
 This vulnerability took place in 22 April 2018 due to integer overflow exploit. Some exchanges (like `OKEx <https://www.okex.com>`_) stopped deposits and withdrawals of ALL ERC20 tokens, especially for `Beauty Ecosystem Coin (BEC) <https://etherscan.io/address/0xc5d105e63711398af9bbff092d4b6769c82f793d>`_ that was targeted by this exploit. Someone was able to transfer two extremely large amount of BEC token
 In addition to BEC token, the following tokens have been affected [1]:
-# UgChain
-# SMART
-# MTC
-# FirstCoin
-# GG Token
-# CNY Token
-# MESH
-# SMT tokens
+#. UgChain
+#. SMART
+#. MTC
+#. FirstCoin
+#. GG Token
+#. CNY Token
+#. MESH
+#. SMT tokens
 Although BEC developpers had implemented most of the security meseaurments, only line 257 of the code was vulnerable:
 
 .. figure:: images/batch_overflow_04.png
