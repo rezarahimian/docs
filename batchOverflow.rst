@@ -5,12 +5,8 @@ Batch Overflow issue
 This vulnerability took place in April 2018 due to integer overflow exploit.
 Some exchanges (like OKEx) stopped deposits and withdrawals of ALL ERC20 tokens,
 especially Beauty Ecosystem Coin (BEC) that was targeted by this exploit.
-Attacker was able to pass values larger than the maximum value that can be held by uint256 data type.
-form
-``0.x.0`` or ``x.0.0``.
-
+Attacker was able to pass values larger than the maximum value that can be held by ``uint256`` data type.
 ::
-
   contract overflowDemo { 
 
     uint256 public a = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
@@ -26,4 +22,3 @@ form
     }
   } 
 
-Such a source file will not compile with a compiler earlier than version 0.4.0
