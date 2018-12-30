@@ -13,6 +13,6 @@ This vulnerability took place in April 2018 due to integer overflow exploit. Som
     
     Figure 1: Integer overflow demonstration in solidity
     
-    
+    .. code-block:: python
     
 We initially set ``c=0x3`` to check its result before and after addition operation performed by *a_plus_b_default()* function. On the left, we can see initial value of ``c`` before execution of the function and on the right, ``c`` has been set to zero due to wrap around
