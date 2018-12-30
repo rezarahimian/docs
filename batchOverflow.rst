@@ -15,12 +15,12 @@ In addition to BEC token, the following tokens have been affected [1]:
 7. MESH
 8. SMT tokens
 Although BEC developpers had implemented most of the security meseaurments, only line 257 of the code was vulnerable:
+
 .. figure:: images/batch_overflow_04.png
     :align: center
     :figclass: align-center
     
     Figure 1: Vulnerable code in BEC token
-
 
 Attacker was able to pass values larger than the maximum value that can be held by ``uint256`` data type. As result of integer overflow, only the least significant bits would be retained and effectively causing `wrap around <https://en.wikipedia.org/wiki/Integer_overflow>`_. For example, an ``uint8`` (8-bit unsigned integer) data type can represent maximum value of ``(2^8)-1=255 (0xff)``. Adding ``0x01`` causes overflow and produces ``0x00`` as the result (0xff + 0x01 = 0x100 => 0x00). 
 
