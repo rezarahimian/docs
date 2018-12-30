@@ -19,3 +19,12 @@ We initially set ``c=0x3`` to check its result before and after addition operati
     Figure 2: Result of addition operation in case of integer overflow
     
 Ethereum executes *a_plus_b_default()* function in unchecked context and shows successful status:
+
+.. figure:: images/batch_overflow_03.png
+    :align: center
+    :figclass: align-center
+    
+    Figure 3: By default, integer overflow does not throw a runtime exception in Ethereum
+
+Although this is expected behaviour in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_
+Recommendation is always use SafeMath library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_
