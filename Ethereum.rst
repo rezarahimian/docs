@@ -5,6 +5,6 @@ Ethereum
 This section contains:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
    erc20-tokens.rst   
