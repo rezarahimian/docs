@@ -3,7 +3,7 @@ ERC-20 tokens
 ************************
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
    erc20-intro.rst
    batchOverflow.rst
