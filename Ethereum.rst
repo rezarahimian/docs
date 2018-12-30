@@ -1,6 +1,6 @@
-########
+********
 Ethereum
-########
+********
 
 This section contains:
 
@@ -8,3 +8,4 @@ This section contains:
    :maxdepth: 4
 
    erc20-tokens.rst   
+   remixide.rst
