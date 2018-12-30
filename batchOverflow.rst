@@ -9,11 +9,7 @@ Attacker was able to pass values larger than the maximum value that can be held 
 form
 ``0.x.0`` or ``x.0.0``.
 
-The version pragma is used as follows::
-
-  pragma solidity ^0.4.0;
-
-Such a source file will not compile with a compiler earlier than version 0.4.0
+::
 
   contract overflowDemo { 
 
@@ -29,3 +25,5 @@ Such a source file will not compile with a compiler earlier than version 0.4.0
         c = a + b;
     }
   } 
+
+Such a source file will not compile with a compiler earlier than version 0.4.0
