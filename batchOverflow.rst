@@ -16,9 +16,7 @@ This vulnerability took place in April 2018 due to integer overflow exploit. Som
 We initially set ``c=0x3`` to check its result before and after addition operation performed by *a_plus_b_default()* function. On the left, we can see initial value of ``c`` before execution of the function and on the right, ``c`` has been set to zero due to wrap around.
 
 .. figure:: images/batch_overflow_02.png
-    :width: 938px
     :align: center
-    :height: 392px
     :alt: alternate text
     :figclass: align-center
     
