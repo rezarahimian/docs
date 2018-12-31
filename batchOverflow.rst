@@ -61,7 +61,7 @@ Ethereum executes *a_multiply_b()* function in unchecked context and shows succe
     
     Figure 5: By default, integer overflow does not throw a runtime exception in Ethereum
 
-The same overflow result can be achieved in addition as well: 
+The same overflow result can be achieved in addition operation:
 
 .. figure:: images/batch_overflow_06.png
     :align: center
