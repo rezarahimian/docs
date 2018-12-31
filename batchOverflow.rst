@@ -25,6 +25,7 @@ In addition to BEC token, the following tokens are batchOverflow-affected:
 7. MESH
 8. SMT tokens
 
+
 Reproducing the issue
 #####################
 The same logic is applicable in solidity programming language and we tested for ``uint256`` data type as shown below:
@@ -53,9 +54,11 @@ Ethereum executes *a_multiply_b()* function in unchecked context and shows succe
 
 Although this is expected behavior in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_
 
+
 Recommendation
 ##############
 Recommendation is always use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code will helps to be in compliance with best practices.
+
 
 References
 ##########
