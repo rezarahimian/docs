@@ -6,7 +6,7 @@ Overflow attack
 
 Description
 ###########
-This vulnerability took place in April 22, 2018 due to a well known and common issue in many programming languages called `Integer overflow <https://en.wikipedia.org/wiki/Integer_overflow>`_. It termed as **batchOverflow** or **proxyOverflow** and some exchanges (like `OKEx <https://okex.com>`_, `Poloniex <https://poloniex.com/>`_, `HitBTC <https://hitbtc.com/>`_ and `Huobi Pro <https://www.huobi.com/en-us/>`_) stopped deposits and withdrawals of ALL ERC20 tokens, especially for `Beauty Ecosystem Coin (BEC) <https://etherscan.io/address/0xc5d105e63711398af9bbff092d4b6769c82f793d>`_ that was targeted by this exploit. In this attack, someone was able to run a `transaction <https://etherscan.io/tx/0xad89ff16fd1ebe3a0a7cf4ed282302c06626c1af33221ebe0d3a470aba4a660f>`_ and transfer two extremely large amount of BEC token to two addresses. Although BEC developers had considered most of the security measurements, only one line of the code (line 257) was vulnerable against this classic integer overflow issue [CIT01]_:
+This vulnerability took place in April 22, 2018 due to a well known and common issue in many programming languages called `Integer overflow <https://en.wikipedia.org/wiki/Integer_overflow>`_. It termed as **batchOverflow** or **proxyOverflow** and some exchanges (like `OKEx <https://okex.com>`_, `Poloniex <https://poloniex.com/>`_, `HitBTC <https://hitbtc.com/>`_ and `Huobi Pro <https://www.huobi.com/en-us/>`_) stopped deposits and withdrawals of ALL ERC20 tokens, especially for `Beauty Ecosystem Coin (BEC) <https://etherscan.io/address/0xc5d105e63711398af9bbff092d4b6769c82f793d>`_ that was targeted by this exploit. In this attack, someone was able to run a `transaction <https://etherscan.io/tx/0xad89ff16fd1ebe3a0a7cf4ed282302c06626c1af33221ebe0d3a470aba4a660f>`_ and transfer two extremely large amount of BEC token to two addresses. Although BEC developers had considered most of the security measurements, only one line of the code (line 257) was vulnerable against this classic integer overflow issue :cite:`PeckShield01`:
 
 .. figure:: images/batch_overflow_04.png
     :align: center
@@ -24,7 +24,7 @@ Attacker was able to pass a combination of input values that generate large resu
     
     Figure 2: Vulnerable code in SMT token, proxyTransfer() function
 
-In addition to BEC and SMT, the following tokens are Overflow-affected [CIT02]_:
+In addition to BEC and SMT, the following tokens are Overflow-affected :cite:`PeckShield02`:
 
 #. `MESH <https://etherscan.io/address/0x3ac6cb00f5a44712022a51fbace4c7497f56ee31>`_
 #. `UGToken <https://etherscan.io/address/0x43ee79e379e7b78d871100ed696e803e7893b644>`_
@@ -84,13 +84,7 @@ Recommendation is always use SafeMath library when performing any arithmetic cal
 
 ----
 
-.. rubric:: References
-
-.. [CIT01] PeckShield, "New batchOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018–10299)," 22 4 2018. [Online]. Available: https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536 [Accessed 26 12 2018].
-
-.. [CIT022] S. Town, "BatchOverflow Exploit Creates Trillions of Ethereum Tokens, Major Exchanges Halt ERC20 Deposits," 25 4 2018. [Online]. Available: https://cryptoslate.com/batchoverflow-exploit-creates-trillions-of-ethereum-tokens/ [Accessed 30 12 2018].
-
-----
-
 :Authors: Reza RAHIMIAN
 :Version: 30-Dec-2018
+
+.. bibliography:: references.bib
