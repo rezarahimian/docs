@@ -46,8 +46,8 @@ master_doc = 'index'
 
 # General information about the project.
 # project = u'oemof_heat'
-copyright = u'2018, c-moeller, jnnr'
-author = u'c-moeller, jnnr'
+# copyright = u'2018, c-moeller, jnnr'
+# author = u'c-moeller, jnnr'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
