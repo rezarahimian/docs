@@ -12,4 +12,5 @@ Contents
    Bitcoin.rst
    Ethereum.rst
    Ripple.rst
-   Hyperledger.rst   
+   Hyperledger.rst
+   About.rst

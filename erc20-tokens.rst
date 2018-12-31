@@ -6,5 +6,5 @@ ERC-20 tokens
    :maxdepth: 4
 
    erc20-intro.rst
-   batchOverflow.rst
+   overflow.rst
    
