@@ -45,7 +45,7 @@ templates_path = ['_templates']
 master_doc = 'index'
 
 # General information about the project.
-project = u'oemof_heat'
+# project = u'oemof_heat'
 copyright = u'2018, c-moeller, jnnr'
 author = u'c-moeller, jnnr'
 
