@@ -84,3 +84,4 @@ Recommendation is always use SafeMath library when performing any arithmetic cal
 
 .. rubric:: References
 .. bibliography:: references.bib
+    :style: plain
