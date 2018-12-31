@@ -54,7 +54,7 @@ author = u'c-moeller, jnnr'
 # built documents.
 #
 # The short X.Y version.
-version = u''
+# version = u''
 # The full version, including alpha/beta/rc tags.
 release = u''
 
