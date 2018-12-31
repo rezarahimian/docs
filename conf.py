@@ -4,4 +4,4 @@ project = u'Project documentations'
 copyright = u'Public'
 author = u'-'
 show_authors = True
-html_theme = "classic"
+html_theme = "alabaster"
