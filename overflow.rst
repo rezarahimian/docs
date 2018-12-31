@@ -82,9 +82,9 @@ Recommendation
 ##############
 Recommendation is always use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code will helps to be in compliance with best practices.
 
+.. bibliography:: references.bib
+
 ----
 
 :Authors: Reza RAHIMIAN
 :Version: 30-Dec-2018
-
-.. bibliography:: references.bib
