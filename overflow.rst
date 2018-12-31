@@ -84,8 +84,7 @@ Recommendation is always use SafeMath library when performing any arithmetic cal
 
 ----
 
-References
-##########
+.. rubric:: References
 
 .. [1] PeckShield, "New batchOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018–10299)," 22 4 2018. [Online]. Available: https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536 [Accessed 26 12 2018].
 
