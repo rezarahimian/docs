@@ -1,0 +1,21 @@
+% Encoding: UTF-8
+
+@Misc{PeckShield02,
+  author       = {PeckShield},
+  title        = {{New batchOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018–10299)}},
+  howpublished = {\url{https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536}},
+  month        = apr,
+  year         = {2018},
+  note         = {[Online; accessed 31-Dec-2018]},
+}
+
+@Misc{PeckShield01,
+  author       = {PeckShield},
+  title        = {{New proxyOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018-10376)}},
+  howpublished = {\url{https://blog.peckshield.com/2018/04/25/proxyOverflow/}},
+  month        = apr,
+  year         = {2018},
+  note         = {[Online; accessed 30-Dec-2018]},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
