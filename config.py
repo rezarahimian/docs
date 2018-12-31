@@ -1,2 +1,10 @@
-show_authors = True
 extensions = ['sphinxcontrib.bibtex']
+templates_path = ['_templates']
+source_suffix = '.rst'
+master_doc = 'index'
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+pygments_style = 'sphinx'
+todo_include_todos = False
+html_theme = 'alabaster'
+html_static_path = ['_static']
+show_authors = True
