@@ -4,4 +4,4 @@ project = u'Project docs'
 copyright = u'Public'
 author = u'-'
 show_authors = True
-html_theme = "sphinxdoc"
+html_theme = "scrolls"
