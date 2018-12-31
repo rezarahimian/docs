@@ -89,4 +89,4 @@ References
 
 .. [1] PeckShield, "New batchOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018–10299)," 22 4 2018. [Online]. Available: https://medium.com/@peckshield/alert-new-batchoverflow-bug-in-multiple-erc20-smart-contracts-cve-2018-10299-511067db6536 [Accessed 26 12 2018].
 
-.. [2] S. Town, "BatchOverflow Exploit Creates Trillions of Ethereum Tokens, Major Exchanges Halt ERC20 Deposits," 25 4 2018. [Online]. Available: https://cryptoslate.com/batchoverflow-exploit-creates-trillions-of-ethereum-tokens/ [Accessed 30 12 2018].
+.. [2] PeckShield, "New proxyOverflow Bug in Multiple ERC20 Smart Contracts (CVE-2018-10376)," 25 4 2018. [Online]. Available: https://blog.peckshield.com/2018/04/25/proxyOverflow/ [Accessed 30 12 2018].
