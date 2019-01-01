@@ -6,15 +6,15 @@ author = u'-'
 show_authors = True
 html_theme = "classic"
 html_theme_options = {
-  "body_min_width" : "75%",
+  "body_min_width" : "60%",
   "rightsidebar" : "false",
   "stickysidebar" : "true",
   "collapsiblesidebar" : "false",
   "footerbgcolor" : "#932439",
   "footertextcolor" : "#FFFFFF",
-  "sidebarbgcolor" : "#FEF5E7",
-  "sidebartextcolor" : "#000080",
-  "sidebarlinkcolor" : "#000000",
+  "sidebarbgcolor" : "#F8F8F8",
+  "sidebartextcolor" : "#932439",
+  "sidebarlinkcolor" : "#932439",
   "relbarbgcolor" : "#932439",
   "relbartextcolor" : "#FFFFFF",
   "relbarlinkcolor" : "#FFFFFF",
