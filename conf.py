@@ -14,7 +14,7 @@ html_theme_options = {
   "footertextcolor" : "#FFFFFF",
   "sidebarbgcolor" : "#FFFFFF",
   "sidebartextcolor" : "#000080",
-  "sidebarlinkcolor" : "#800000",
+  "sidebarlinkcolor" : "#000000",
   "relbarbgcolor" : "#FFFFFF",
   "relbartextcolor" : "#000080",
   "relbarlinkcolor" : "#0000FF",
@@ -27,8 +27,8 @@ html_theme_options = {
   "headlinkcolor" : "#000080",
   "codebgcolor" : "#FFFFFF",
   "codetextcolor" : "#000000",
-  "bodyfont" : "Helvetica",
-  "headfont" : "Georgia"
+  "bodyfont" : "Georgia",
+  "headfont" : "Bookman"
 }
 full_logo = True
 html_logo = 'images/logo.png'
