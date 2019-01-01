@@ -4,9 +4,9 @@
 About
 #####
 
-.. csv-table:: Authors
+.. csv-table::
    :header: "Name", "Contact", "Content contribution"
    :widths: 20, 30, 20
 
-   "Reza RAHIMIAN", "https://www.researchgate.net/profile/Reza_Rahimian4", :ref:`overflow_attack`
+   Reza RAHIMIAN, `ResearchGate Profile <https://www.researchgate.net/profile/Reza_Rahimian4>`_, :ref:`overflow_attack`
    
