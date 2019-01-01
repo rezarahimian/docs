@@ -12,7 +12,7 @@ html_theme_options = {
   "collapsiblesidebar" : "false",
   "footerbgcolor" : "#F8F8F8",
   "footertextcolor" : "#000000",
-  "sidebarbgcolor" : "#F8F8F8",
+  "sidebarbgcolor" : "#FAFBFC",
   "sidebartextcolor" : "#000000",
   "sidebarlinkcolor" : "#932439",
   "relbarbgcolor" : "#932439",
