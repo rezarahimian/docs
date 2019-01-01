@@ -1,8 +1,10 @@
-********
-Ethereum
-********
+.. _ethereum:
 
-This section contains:
+#################
+Ethereum Projects
+#################
+
+This section contains projects based-on Ethereum blockchain:
 
 .. toctree::
    :maxdepth: 4
