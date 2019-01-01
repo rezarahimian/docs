@@ -5,3 +5,5 @@ copyright = u'Public'
 author = u'-'
 show_authors = True
 html_theme = "haiku"
+full_logo = True
+html_logo = 'images\logo.png'
