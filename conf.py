@@ -7,6 +7,7 @@ show_authors = True
 html_theme = "classic"
 html_theme_options = {
   "body_min_width" : "60%",
+  "sidebarwidth" : "200px",
   "rightsidebar" : "false",
   "stickysidebar" : "true",
   "collapsiblesidebar" : "false",
@@ -28,7 +29,9 @@ html_theme_options = {
   "codebgcolor" : "#FFFFFF",
   "codetextcolor" : "#000000",
   "bodyfont" : "Helvetica",
-  "headfont" : "Georgia"
+  "headfont" : "Georgia",
+  "headerbordercolor": "#000000",
+  "subheadlinecolor": "#000000"
 }
 full_logo = True
 html_logo = 'images/logo.png'
