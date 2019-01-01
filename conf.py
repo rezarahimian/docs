@@ -28,7 +28,7 @@ html_theme_options = {
   "headbgcolor" : "#FFFFFF",
   "headtextcolor" : "#000000",
   "headlinkcolor" : "#932439",
-  "headerlinkcolor" : "#932439",
+  "headerlinkcolor" : "#FFFFFF",
   "codebgcolor" : "#FFFFFF",
   "codetextcolor" : "#000000",
   "bodyfont" : "Helvetica",
