@@ -6,7 +6,8 @@ author = u'-'
 show_authors = True
 html_theme = "classic"
 html_theme_options = {
-  "rightsidebar" : "true",
+  "body_min_width" : "50%",
+  "rightsidebar" : "false",
   "stickysidebar" : "true",
   "collapsiblesidebar" : "false",
   "footerbgcolor" : "#FFFFFF",
