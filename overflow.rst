@@ -87,5 +87,6 @@ It is recommended to use SafeMath library when performing any arithmetic calcula
     :style: plain
 
 :Date: 2018-12-26
-:Version: 1
+:Updated: 2019-01-02
+:Version: 1.0
 :Authors: Reza RAHIMIAN
