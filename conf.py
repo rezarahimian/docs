@@ -7,7 +7,8 @@ show_authors = True
 html_theme = "agogo"
 html_theme_options = {
   "body_min_width" : "60%",
-  "documentwidth" : "100%",
+  "pagewidth" : "90em",
+  "documentwidth" : "80em",
   "sidebarwidth" : "200px",
   "rightsidebar" : "false",
   "stickysidebar" : "true",
