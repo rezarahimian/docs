@@ -7,3 +7,5 @@ show_authors = True
 html_theme = "haiku"
 full_logo = True
 html_logo = 'logo.png'
+html_show_copyright = False
+html_show_sphinx = False
