@@ -5,6 +5,7 @@ copyright = u'Public'
 author = u'-'
 show_authors = True
 html_theme = "classic"
+bgcolor = #F0FFFF
 full_logo = True
 html_logo = 'images/logo.png'
 html_show_copyright = False
