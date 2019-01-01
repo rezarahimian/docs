@@ -27,7 +27,7 @@ html_theme_options = {
   "headlinkcolor" : "#0000FF",
   "codebgcolor" : "#FFFFFF",
   "codetextcolor" : "#000000",
-  "bodyfont" : "Open Sans",
+  "bodyfont" : "Verdana",
   "headfont" : "Bookman"
 }
 full_logo = True
