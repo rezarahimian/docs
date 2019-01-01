@@ -9,3 +9,4 @@ Will be added soon...
    :caption: Contents:
 
    Ethereum.rst
+   About.rst
