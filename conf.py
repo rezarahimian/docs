@@ -6,7 +6,10 @@ author = u'-'
 show_authors = True
 html_theme = "classic"
 html_theme_options = {
-  "bgcolor" : "#ffffff"
+  "bgcolor" : "#FFFFFF",
+  "textcolor" : "#000000",
+  "linkcolor" : "#21618C",
+  "visitedlinkcolor" : "#21618C"
 }
 full_logo = True
 html_logo = 'images/logo.png'
