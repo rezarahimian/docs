@@ -1,9 +1,9 @@
 extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax']
 master_doc = 'index'
-project = u'Project'
+project = u'Blockchain'
 copyright = u'Public'
 author = u'-'
 show_authors = True
 html_theme = "haiku"
 full_logo = True
-html_logo = 'images\logo.png'
+html_logo = 'logo.png'
