@@ -7,3 +7,4 @@ ERC-20 tokens
 
    erc20-intro.rst
    overflow.rst
+   erc20-conclusion.rst
