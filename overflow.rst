@@ -4,7 +4,7 @@
 Overflow attack
 ###############
 
-.. topic:: Description
+.. index:: ! overflow attack
 
 Description
 ###########
