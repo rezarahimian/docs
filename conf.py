@@ -1,6 +1,6 @@
 extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax']
 master_doc = 'index'
-project = u'Blockchain'
+project = u'Blockchain projects'
 copyright = u'Public'
 author = u'-'
 show_authors = True
