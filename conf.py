@@ -12,7 +12,7 @@ html_theme_options = {
   "collapsiblesidebar" : "false",
   "footerbgcolor" : "#932439",
   "footertextcolor" : "#FFFFFF",
-  "sidebarbgcolor" : "#F8F9F9",
+  "sidebarbgcolor" : "#FEF5E7",
   "sidebartextcolor" : "#000080",
   "sidebarlinkcolor" : "#000000",
   "relbarbgcolor" : "#932439",
@@ -28,7 +28,7 @@ html_theme_options = {
   "codebgcolor" : "#FFFFFF",
   "codetextcolor" : "#000000",
   "bodyfont" : "Helvetica",
-  "headfont" : "Arial Black"
+  "headfont" : "Georgia"
 }
 full_logo = True
 html_logo = 'images/logo.png'
