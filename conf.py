@@ -6,10 +6,12 @@ author = u'-'
 show_authors = True
 html_theme = "classic"
 html_theme_options = {
+  "stickysidebar" : "true",
   "bgcolor" : "#FFFFFF",
+  "sidebarbgcolor" : "#FFFFFF",
   "textcolor" : "#000000",
-  "linkcolor" : "#21618C",
-  "visitedlinkcolor" : "#21618C"
+  "linkcolor" : "#0000FF",
+  "visitedlinkcolor" : "#0000FF"
 }
 full_logo = True
 html_logo = 'images/logo.png'
