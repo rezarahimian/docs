@@ -6,12 +6,28 @@ author = u'-'
 show_authors = True
 html_theme = "classic"
 html_theme_options = {
+  "rightsidebar" : "true",
   "stickysidebar" : "true",
-  "bgcolor" : "#FFFFFF",
+  "collapsiblesidebar" : "false",
+  "footerbgcolor" : "#FFFFFF",
+  "footertextcolor" : "#FFFFFF",
   "sidebarbgcolor" : "#FFFFFF",
+  "sidebartextcolor" : "#000080",
+  "sidebarlinkcolor" : "#800000",
+  "relbarbgcolor" : "#FFFFFF",
+  "relbartextcolor" : "#000080",
+  "relbarlinkcolor" : "#0000FF",
+  "bgcolor" : "#FFFFFF",
   "textcolor" : "#000000",
   "linkcolor" : "#0000FF",
-  "visitedlinkcolor" : "#0000FF"
+  "visitedlinkcolor" : "#0000FF",
+  "headbgcolor" : "#FFFFFF",
+  "headtextcolor" : "#000000",
+  "headlinkcolor" : "#000080",
+  "codebgcolor" : "#FFFFFF",
+  "codetextcolor" : "#000000",
+  "bodyfont" : "Helvetica",
+  "headfont" : "Georgia"
 }
 full_logo = True
 html_logo = 'images/logo.png'
