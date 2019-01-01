@@ -10,7 +10,6 @@ This vulnerability took place in April 22, 2018 due to a well known and common i
 
 .. figure:: images/batch_overflow_04.png
     :align: center
-    :figclass: align-center
     
     Figure 1: Vulnerable code in BEC token, batchTransfer() function
 
@@ -20,7 +19,6 @@ Attacker was able to pass a combination of input values that generate large resu
 
 .. figure:: images/batch_overflow_05.png
     :align: center
-    :figclass: align-center
     
     Figure 2: Vulnerable code in SMT token, proxyTransfer() function
 
@@ -41,7 +39,6 @@ The same logic is applicable in solidity programming language and we tested for 
 
 .. figure:: images/batch_overflow_01.png
     :align: center
-    :figclass: align-center
     
     Figure 3: Integer overflow demonstration in solidity
     
@@ -49,7 +46,6 @@ We initially set ``c=0x3`` to check its result before and after multiplication o
 
 .. figure:: images/batch_overflow_02.png
     :align: center
-    :figclass: align-center
     
     Figure 4: Result of multiplication operation in case of integer overflow
     
@@ -57,7 +53,6 @@ Ethereum executes *a_multiply_b()* function in unchecked context and shows succe
 
 .. figure:: images/batch_overflow_03.png
     :align: center
-    :figclass: align-center
     
     Figure 5: By default, integer overflow does not throw a runtime exception in Ethereum
 
@@ -65,13 +60,11 @@ The same overflow result can be achieved in addition as well:
 
 .. figure:: images/batch_overflow_06.png
     :align: center
-    :figclass: align-center
     
     Figure 6: Integer overflow demonstration in solidity
 
 .. figure:: images/batch_overflow_07.png
     :align: center
-    :figclass: align-center
     
     Figure 7: Result of addition operation in case of integer overflow
 
