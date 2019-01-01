@@ -1,7 +1,7 @@
 extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax']
 master_doc = 'index'
 project = u'Blockchain projects'
-copyright = u'Public'
+copyright = u'-'
 author = u'-'
 show_authors = True
 html_theme = "agogo"
