@@ -1,4 +1,4 @@
-.. _overflow_attack
+.. _overflow_attack:
 
 ###############
 Overflow attack
