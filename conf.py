@@ -4,7 +4,7 @@ project = u'Blockchain projects'
 copyright = u'Public'
 author = u'-'
 show_authors = True
-html_theme = "classic"
+html_theme = "agogo"
 html_theme_options = {
   "body_min_width" : "60%",
   "sidebarwidth" : "200px",
