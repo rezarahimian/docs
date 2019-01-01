@@ -1,4 +1,4 @@
-extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax']
+extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax','sphinx.ext.todo']
 master_doc = 'index'
 project = u'Blockchain projects'
 copyright = u'-'
@@ -41,3 +41,4 @@ full_logo = True
 html_logo = 'images/logo.png'
 html_show_copyright = False
 html_show_sphinx = False
+todo_include_todos = True
