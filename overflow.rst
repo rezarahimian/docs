@@ -54,7 +54,7 @@ Ethereum executes *a_multiply_b()* function in unchecked context and shows succe
     
     Figure 5: By default, integer overflow does not throw a runtime exception in Ethereum
 
-The same overflow result can be achieved in addition as well: 
+The same overflow result can be reprocuded in the sum of two ``uint256`` numbers: 
 
 .. figure:: images/batch_overflow_06.png
     :figclass: align-center
@@ -66,13 +66,23 @@ The same overflow result can be achieved in addition as well:
     
     Figure 7: Result of addition operation in case of integer overflow
 
-Although this is expected behavior in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_ and `CVE-2018-10376 <https://nvd.nist.gov/vuln/detail/CVE-2018-10376>`_
-numeric values outside of the range that can be represented
+Although this is expected behavior in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_ and `CVE-2018-10376 <https://nvd.nist.gov/vuln/detail/CVE-2018-10376>`_. The arithmetic result of numeric values outside of the representable range will lead to wrap around and sets the result to 0.
 
 Recommendation
 ##############
-Recommendation is always use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code could prevent such human errors and help to be in compliance with best practices.
+It is recommended to use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code could prevent such human errors and help to be in compliance with best practices. We used SafeMath library and re-implemented vulnerable functions:
+
+.. figure:: images/batch_overflow_08.png
+    :figclass: align-center
+    
+    Figure 8: Re-implemented multiply function by using SafeMath library
+
+.. figure:: images/batch_overflow_09.png
+    :figclass: align-center
+    
+    Figure 9: Raised exception in case of overflow issue
 
 .. rubric:: References
 .. bibliography:: references.bib
     :style: plain
+
