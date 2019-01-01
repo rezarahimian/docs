@@ -5,7 +5,7 @@ Overflow attack
 ###############
 
 .. index::
-    single: overflow; batchOverflow; proxyOverflow
+    triple: overflow; batchOverflow; proxyOverflow
 
 Description
 ###########
