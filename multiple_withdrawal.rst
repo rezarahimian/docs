@@ -14,6 +14,7 @@ Description
 #. **TransferFrom**: Transfers ``_value`` amount of tokens from address ``_from`` to address ``_to``. It allows accounts/wallets to transfer tokens on behalf of approver.
 
 .. figure:: images/multiple_withdrawal_01.png
+    :scale: 80%
     :figclass: align-center
     
     Figure 1: Standard ERC20 Approve and transferFrom methodes
