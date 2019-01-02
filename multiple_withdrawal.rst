@@ -61,7 +61,7 @@ So, they recommend to enforce approval processing check in UI level. If someone 
 As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic functionalities by implementing only essential methods. In other words, by skipping implementation of vulnerable functions, effecting the attack would not be possible:
 
 .. figure:: images/multiple_withdrawal_04.png
-    :scale: 100%
+    :scale: 80%
     :figclass: align-center
     
     Figure 4: Minimum viable token implementation
@@ -81,6 +81,7 @@ Approving token transfer to non-upgradable smart contracts would be safe. Becaus
 However, upgradable smart contracts may add new logics to a new version that needs reverification before approving token transfer. Similarly, approving token transfer to people that we trust could be considered as a mitigation plan. Since this solution would have limited use cases, it could not be considered as a generic solution to the attack.
 
 4. MiniMeToken implementation
+=============================
 `MiniMeToken <https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol#L225>`_ recommends to reduce allowance to zero before non-zero approval. As shown in the screenshot, the red clause in Approve method, allows to set approval to zero and blue condition checks allowance of ``_spender`` to be zero before setting to non-zero values (If ``_spender`` allowance is zero then allows non-zero values):
 
 .. figure:: images/multiple_withdrawal_06.png
@@ -100,6 +101,75 @@ As discussed `here <https://github.com/OpenZeppelin/openzeppelin-solidity/issues
 #. Bob transfers M Alice's tokens and in total N+M.
 
 At step 3, Bob is able to transfer N tokens. This is a legitimate transaction since Alice already approved it. The issue will happen after Alice’s new transaction to set Bob’s approval to zero. In case of front-running by Bob, Alice needs to check Bob’s allowance for the second time before setting to the new value. Alice may notice this by checking Transfer event that logged by Bob. However, if Bob had transferred tokens to someone else, then Transfer event will not be linked to Bob, and, if Alice's account is busy and many people are allowed to transfer from it, Alice may not be able to distinguish this transfer from a legitimate one performed by someone else. So, this solution does not prevent the attack while tries to follow ERC20 recommendations for setting Bob’s allowance to zero before any non-zero value.
+
+5. MonolithDAO Token
+====================
+`MonolithDAO Token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ suggests to add two additional functions and use them when increase or decrease allowed tokens to a spender. ``Approve`` function will also have an additional line of code to set allowance to zero before non-zero values:
+
+.. figure:: images/multiple_withdrawal_07.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 7: Suggested approve and transferFrom methods by MonolithDAO
+
+.. figure:: images/multiple_withdrawal_08.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 8: New methods to increase/decrease the amount of tokens that an owner allowed to a spender
+
+In this case, the default ``Approve`` function should be called when spender’s allowance is zero. If spender’s allowance is non-zero, Increase and decrease functions are applicable:
+
+.. figure:: images/multiple_withdrawal_09.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 9: Functionality of Approve method with new added line
+
+These two functions will address race condition and prevent allowance double-spend exploit as explained below:
+
+#. Alice allows Bob to transfer N tokens by calling Approve(_BobAddr, N). This will be executed by Approve function since current Bob’s allowance is zero.
+#. After a while, Alice decides to decrease Bob’s approval by M and calls decreaseApproval(_BobAddr, M).
+#. Bob notices Alice's second transaction and front runs it by calling transferFrom(_AlicAddr, _BobAddr, N).
+#. Bob’s transaction will be executed and transfers N token to his account and his allowance becomes zero as result of this transfer.
+#. Alice’s transaction is mined after Bob’s and decreases Bob’s allowance by M. Now Bob’s allowance is negative (-M). Alternatively, decreaseApproval could be implemented in a way to check and fail if current allowance is lower than requested decrease instead of setting negative values.
+#. Bob’s attempt to transfer M tokens will fail due to negative (or zero) allowance.
+
+Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by tokens that are already deployed on the Ethereum smart contracts. Because they will still use Approve method for setting new allowance and not increaseApproval or decreaseApproval. For this reason, this solution would not be a compatible solution with ERC20 standard and only is usable if approver or smart contract be aware of these supplementary methods.
+
+6. Alternate approval function
+==============================
+`Another suggestion <https://github.com/kindads/erc20-token/blob/40d796627a2edd6387bdeb9df71a8209367a7ee9/contracts/zeppelin-solidity/contracts/token/StandardToken.sol>`_ is to move security checks to another function like ``safeApprove`` that change allowance if it has not been already changed:
+
+.. figure:: images/multiple_withdrawal_10.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 10: safeApprove proposal as alternative to ERC20 standard approve function
+
+By using this function, Alice uses the standard Approve function to set Bob’s allowance to zero. For new approvals, she has to use ``safeApprove`` to set Bob’s allowance to a new value. As mentioned in the pervious solution, this approach is not backward compatible with already implemented smart contract because other smart contracts are not aware of new ``safeApprove`` method and usage of it.
+
+7. New token standards
+======================
+`ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ are other standards that solved this security issue by changing approval model. They fix some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal of this paper is to find a backward compatible approach instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand feature and improved security in new standard, this paper would not consider them as target solution.
+
+.. figure:: images/multiple_withdrawal_11.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 11: ERC271 token interface
+    
+8. Changing ERC20 API
+=====================
+As suggested by :cite:`Ref03` changes to ERC20 Approve method by comparing current allowance of spender and setting it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters
+
+.. figure:: images/multiple_withdrawal_12.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 12: Suggested ERC20 API Change for Approve method
+    
+In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any Approve call will throw an exception. Additionally, one more call is required to read current allowance value and pass it to the new Approve method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes the token contract incompatible with deployed smart contracts and wallets. Hence, it could not be a viable solution.
 
 |
 |
