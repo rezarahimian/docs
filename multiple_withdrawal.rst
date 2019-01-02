@@ -31,6 +31,7 @@ As explain by :cite:`Ref03`, these two functions could be used in multiple withd
 In fact, Alice attempted to change Bob's allowance from N to M, but she made it possible for Bob to transfer N+M of her tokens at most, while Alice never wanted to allow so many transfers by Bob:
 
 .. figure:: images/multiple_withdrawal_02.png
+    :scale: 50%
     :figclass: align-center
     
     Figure 2: ERC20 multiple withdrawal attack
