@@ -1,4 +1,4 @@
-extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax','sphinx.ext.todo']
+extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax','sphinx.ext.todo','sphinx_copybutton']
 master_doc = 'index'
 project = u'Blockchain projects'
 copyright = u'-'
