@@ -4,6 +4,7 @@ project = u'Blockchain projects'
 copyright = u'-'
 author = u'-'
 show_authors = True
+pygments_style = "classic"
 html_theme = "agogo"
 html_last_updated_fmt = '%b %d, %Y, %X'
 html_use_index = False
