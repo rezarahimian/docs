@@ -17,7 +17,7 @@ Description
     
     Figure 1: Standard ERC20 Approve and transferFrom methodes
     
-As explain by [4], these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``Approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Here could be a possible attack scenario:
+As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``Approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Here could be a possible attack scenario:
 #. Alice allows Bob to transfer N tokens by calling ``Approve(_BobAddr, N)``.
 #. After a while, Alice decides to change approval from N to M by calling ``Approve(_BobAddr, M)``.
 #. Bob notices Alice's second transaction before it was mined and quickly sends another transaction that calls ``transferFrom(_AlicAddr, _BobAddr, N)``. This transfers N Alice's tokens to Bob.
@@ -29,3 +29,22 @@ In fact, Alice attempted to change Bob's allowance from N to M, but she made it 
 
 
 
+|
+|
+|
+
+----
+
+.. rubric:: References
+.. bibliography:: references.bib
+    :style: plain
+
+|
+|
+|
+
+----
+
+:Date:    Dec 25, 2018
+:Updated: |today|
+:Authors: :ref:`about`
