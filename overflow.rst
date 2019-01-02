@@ -264,7 +264,7 @@ In order to have a safe solidity code, it is recoomended to use `SafeMath <https
 
 ----
 
-:Date:  2018-12-26
-:Updated:   .. date:: %H:%M
-:Version:   1.0
-:Authors:   :ref:`about`
+:Date:    2018-12-26
+:Updated: 2019-01-02
+:Version: 1.0
+:Authors: :ref:`about`
