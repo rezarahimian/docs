@@ -17,14 +17,14 @@ This attack took place in April 22, 2018 due to a well known and common issue in
 
 Attacker was able to pass a combination of input values that generate large results than the maximum value of ``uint256`` data type could hold. It caused integer overflow and only the least significant bits have been retained. In other words, the ``uint256`` variable reached to the maximum value that can be held and it `wraps around <https://en.wikipedia.org/wiki/Integer_overflow>`_ by starting from 0. For example, an ``uint8`` (8-bit unsigned integer) variable can represent maximum value of :math:`2^8-1=255` ``(0xff)``. Multiplying ``0x02`` by ``0x80`` causes integer overflow and produces ``0x00`` as the result (``0x02 * 0x80 = 0x100 => 0x00``). We can achieve the same result by adding ``0x01`` to ``0xff`` (``0x01 + 0xff = 0x100 => 0x00``). So, In BEC case, attacker passed two addresses ( *cnt = _receivers.lengh* = ``0x02`` ) and a large value ( *_value* = ``0x8000000000000000000000000000000000000000000000000000000000000000 (63 0's)`` ) to *batchTransfer()* function. Because of wrap around, the result of *amount* variable (line 257) was calculated as ``0x00`` and this result bypassed sanity checks in line 259. Hence, line 264 transferred the specified *_value* to those two addresses. This transfer was even more than the initial supply of the token (``7000000000000000000000000000 (27 0's)``) and allowed attacker to take control of token finance.
 
-`Smart Mesh (SMT) <https://etherscan.io/address/0x55f93985431fc9304077687a35a1ba103dc1e081>`_ token was the next victime on April 24, 2018 by `transfering <https://etherscan.io/tx/0x1abab4c8db9a30e703114528e31dee129a3a758f7f8abc3b6494aad3d304e43f>`_ ``0x8fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff (63 f’s)`` tokens to `one address <https://etherscan.io/token/0x55f93985431fc9304077687a35a1ba103dc1e081?a=0xdf31a499a5a8358b74564f1e2214b31bb34eb46f>`_ and ``0x7000000000000000000000000000000000000000000000000000000000000001 (62 0's)`` as huge fee to the transaction `initiator <https://etherscan.io/address/0xd6a09bdb29e1eafa92a30373c44b09e2e2e0651e>`_. An attacker called *proxyOverflow()* function which was designed for transfering tokens on behalf on someone else by taking a fee. Line 206 of this smart contract was vulnerable to the exploit and sum of *_feeSmt and _value* bypasses the sanity check:
+`Smart Mesh (SMT) <https://etherscan.io/address/0x55f93985431fc9304077687a35a1ba103dc1e081>`_ token was the next victime of this exploit on April 24, 2018 by `transfering <https://etherscan.io/tx/0x1abab4c8db9a30e703114528e31dee129a3a758f7f8abc3b6494aad3d304e43f>`_ ``0x8fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff (63 f’s)`` tokens to `one address <https://etherscan.io/token/0x55f93985431fc9304077687a35a1ba103dc1e081?a=0xdf31a499a5a8358b74564f1e2214b31bb34eb46f>`_ and ``0x7000000000000000000000000000000000000000000000000000000000000001 (62 0's)`` as huge fee to the transaction `initiator <https://etherscan.io/address/0xd6a09bdb29e1eafa92a30373c44b09e2e2e0651e>`_. An attacker called *proxyOverflow()* function which was designed for transfering tokens on behalf on someone else by taking a fee. Line 206 of this smart contract was vulnerable and sum of *_feeSmt and _value* bypassed the sanity check in line 206:
 
 .. figure:: images/batch_overflow_05.png
     :figclass: align-center
     
     Figure 2: Vulnerable code in SMT token, proxyTransfer() function
 
-In addition to BEC and SMT, the following tokens are overflow-affected :cite:`PeckShield02`:
+In addition to BEC and SMT, the following tokens have been identified as overflow-affected :cite:`PeckShield02`:
 
 #. `MESH <https://etherscan.io/address/0x3ac6cb00f5a44712022a51fbace4c7497f56ee31>`_
 #. `UGToken <https://etherscan.io/address/0x43ee79e379e7b78d871100ed696e803e7893b644>`_
@@ -37,21 +37,21 @@ In addition to BEC and SMT, the following tokens are overflow-affected :cite:`Pe
 
 Reproducing the issue
 #####################
-To check feasibility of this attack in the version ``0.5.2`` of solidity programming language, the below smart contract is created and used to test overflow attack on ``uint256`` data type:
+To check feasibility of this attack in the current version of solidity programming language (``0.5.2`` as writing this), the below smart contract is created and used to test overflow attack on ``uint256`` data type:
 
 .. figure:: images/batch_overflow_01.png
     :figclass: align-center
     
     Figure 3: Integer overflow demonstration in solidity
     
-We initially set ``c=0x3`` to check its result before and after multiplication operation performed by *a_multiply_b()* function. On the left, we can see initial value of ``c`` before execution of the function and on the right, after that. Value of ``c`` has been set to zero after execution of the function due to wrap around.
+We initially set ``c=0x3`` to check its result before and after multiplication operation performed by *a_multiply_b()* function. On the left, we can see initial value of ``c=3`` before execution of the function and on the right, after that. Value of ``c`` has been set to zero after execution of the function due to wrap around.
 
 .. figure:: images/batch_overflow_02.png
     :figclass: align-center
     
     Figure 4: Result of multiplication operation in case of integer overflow
     
-Ethereum executes *a_multiply_b()* function in unchecked context and shows successful status by returning ``true`` as output of the function:
+Ethereum executed *a_multiply_b()* function in unchecked context and showed successful status by returning ``true`` as output of the function:
 
 .. figure:: images/batch_overflow_03.png
     :figclass: align-center
@@ -70,16 +70,18 @@ The same overflow result can be reprocuded in the sum of two ``uint256`` numbers
     
     Figure 7: Result of addition operation in case of integer overflow
 
-Although this is expected behavior in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_ and `CVE-2018-10376 <https://nvd.nist.gov/vuln/detail/CVE-2018-10376>`_. The arithmetic result of numeric values outside of the representable range will lead to wrap around and sets the result to 0.
+As shown above, the arithmetic result of numeric values outside of the representable range will lead to wrap around and sets the result to 0. Although this is expected behavior in Ethereum, it causes security problems as explained in `CVE-2018–10299 <https://nvd.nist.gov/vuln/detail/CVE-2018-10299>`_ and `CVE-2018-10376 <https://nvd.nist.gov/vuln/detail/CVE-2018-10376>`_. To address this issue, there are best practices to follow as explained in the next section.
 
-Recommendation
-##############
-It is recommended to use SafeMath library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code could prevent such human errors and help to be in compliance with best practices. We used SafeMath library and re-implemented vulnerable functions:
+Mitigation
+==========
+To prevent overflow attack, it is recommended to use `SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code could prevent such human errors and help to be in compliance with best practices. We used SafeMath library and re-implemented vulnerable functions in the previous section:
 
 .. figure:: images/batch_overflow_08.png
     :figclass: align-center
     
     Figure 8: Re-implemented multiply function by using SafeMath library
+
+This time, execution of *a_multiply_b()* function raised an exception and stopped code execution:
 
 .. figure:: images/batch_overflow_09.png
     :figclass: align-center
