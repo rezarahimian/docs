@@ -36,7 +36,7 @@ In fact, Alice attempted to change Bob's allowance from N to M, but she made it 
     Figure 2: ERC20 multiple withdrawal attack
 
 The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw N tokens after the initial Alice’s approval, this would be considered as a legitimate transfer since Alice already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). So we are looking for a solution to prevent multiple withdrawal (N+M) by Bob assuming that Alice has more than N+M tokens in her wallet.
-As part of ERC20 definition, two examples from OpenZeppelin `<https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_ are recommended by authors. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and ConsenSys has not attempted to work around the issue. There are other suggestions as well. Hence, we have to evaluate all suggested solutions in term of compatibly with the standard and mitigation against the attack.
+As part of ERC20 definition, two examples from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_ are recommended by authors. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and ConsenSys has not attempted to work around the issue. There are other suggestions as well. Hence, we have to evaluate all suggested solutions in term of compatibly with the standard and mitigation against the attack.
 
 Suggested solutions
 *******************
@@ -57,14 +57,14 @@ So, they recommend to enforce approval processing check in UI level. If someone 
 |
 |
 
-----
-
 .. rubric:: Footnotes
-[#]. `JavaScript UI library <https://github.com/ethereum/wiki/wiki/JavaScript-API>`_ for interacting with Ethereum blockchain.
+.. [#] `JavaScript UI library <https://github.com/ethereum/wiki/wiki/JavaScript-API>`_ for interacting with Ethereum blockchain.
 
 |
 |
 |
+
+----
 
 .. rubric:: References
 .. bibliography:: references.bib
