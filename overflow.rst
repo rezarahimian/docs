@@ -91,7 +91,7 @@ This time, execution of *a_multiply_b()* function raised an exception and stoppe
 Full Code:
 
 .. code-block:: java
-    :emphasize-lines: 137
+    :emphasize-lines: 137, 154
     :linenos:
 
     pragma solidity ^0.5.2;
