@@ -88,7 +88,7 @@ This time, execution of *a_multiply_b()* function raised an exception and stoppe
     
     Figure 9: Raised exception in case of overflow issue
     
-Full Code:
+Full code using SafeMath:
 
 .. code-block:: java
     :emphasize-lines: 137, 154
@@ -272,7 +272,9 @@ In order to have a safe solidity code, it is recoomended to use `SafeMath <https
 
 ----
 
+.. function:: now()
+
 :Date:    2018-12-26
-:Updated: 2019-01-02
+:Updated: 
 :Version: 1.0
 :Authors: :ref:`about`
