@@ -15,9 +15,9 @@ This attack took place in April 22, 2018 due to a well known and common issue in
     
     Figure 1: Vulnerable code in BEC token, batchTransfer() function
 
-Attacker was able to pass a combination of input values that generate large results than the maximum value of ``uint256`` data type could hold. It caused integer overflow and only the least significant bits have been retained. In other words, the ``uint256`` variable reached to the maximum value that can be held and it `wraps around <https://en.wikipedia.org/wiki/Integer_overflow>`_ by starting from 0. For example, an ``uint8`` (8-bit unsigned integer) variable can represent maximum value of :math:`2^8-1=255` ``(0xff)``. Multiplying ``0x02`` by ``0x80`` causes integer overflow and produces ``0x00`` as the result (``0x02 * 0x80 = 0x100 => 0x00``). We can achieve the same result by adding ``0x01`` to ``0xff`` (``0x01 + 0xff = 0x100 => 0x00``). So, In BEC case, attacker passed two addresses ( *cnt = _receivers.lengh* = ``0x02`` ) and a large value ( *_value* = ``0x8000000000000000000000000000000000000000000000000000000000000000 (63 0's)`` ) to *batchTransfer()* function. Because of wrap around, the result of *amount* variable (line 257) was calculated as ``0x00`` and this result bypassed sanity checks in line 259. Hence, line 264 transferred the specified *_value* to those two addresses. This transfer was even more than the initial supply of the token (``7000000000000000000000000000 (27 0's)``) and allowed attacker to take control of token finance.
+The attacker was able to pass a combination of input values that generate large results than the maximum value of ``uint256`` data type can hold. It caused integer overflow and only the least significant bits have been retained. In other words, the ``uint256`` variable reached to the maximum value that can be held and it `wraps around <https://en.wikipedia.org/wiki/Integer_overflow>`_ by starting from 0. For example, an ``uint8`` (8-bit unsigned integer) can represent maximum value of :math:`2^8-1=255` ``(0xff)``. Multiplying ``0x02`` by ``0x80`` causes integer overflow and produces ``0x00`` as the result (``0x02 * 0x80 = 0x100 => 0x00``). We can achieve the same result by adding ``0x01`` to ``0xff`` (``0x01 + 0xff = 0x100 => 0x00``). So, In BEC case, the attacker passed two addresses ( *cnt = _receivers.lengh* = ``0x02`` ) and a large value ( *_value* = ``0x8000000000000000000000000000000000000000000000000000000000000000 (63 0's)`` ) to *batchTransfer()* function. Because of wrap around, the result of *amount* variable (line 257) was calculated as ``0x00`` and this result bypassed sanity checks in line 259. Hence, line 264 transferred the specified *_value* to those two addresses. This transfer was even more than the initial supply of the token which was ``7000000000000000000000000000 (27 0's)`` tokens. It potentially allows the attacker to take control of token finance and manuplate its price.
 
-`Smart Mesh (SMT) <https://etherscan.io/address/0x55f93985431fc9304077687a35a1ba103dc1e081>`_ token was the next victime of this exploit on April 24, 2018 by `transfering <https://etherscan.io/tx/0x1abab4c8db9a30e703114528e31dee129a3a758f7f8abc3b6494aad3d304e43f>`_ ``0x8fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff (63 f’s)`` tokens to `one address <https://etherscan.io/token/0x55f93985431fc9304077687a35a1ba103dc1e081?a=0xdf31a499a5a8358b74564f1e2214b31bb34eb46f>`_ and ``0x7000000000000000000000000000000000000000000000000000000000000001 (62 0's)`` as huge fee to the transaction `initiator <https://etherscan.io/address/0xd6a09bdb29e1eafa92a30373c44b09e2e2e0651e>`_. An attacker called *proxyOverflow()* function which was designed for transfering tokens on behalf on someone else by taking a fee. Line 206 of this smart contract was vulnerable and sum of *_feeSmt and _value* bypassed the sanity check in line 206:
+`Smart Mesh (SMT) <https://etherscan.io/address/0x55f93985431fc9304077687a35a1ba103dc1e081>`_ token was the next victime of this exploit on April 24, 2018 by `transfering <https://etherscan.io/tx/0x1abab4c8db9a30e703114528e31dee129a3a758f7f8abc3b6494aad3d304e43f>`_ ``0x8fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff (63 f’s)`` tokens to `one address <https://etherscan.io/token/0x55f93985431fc9304077687a35a1ba103dc1e081?a=0xdf31a499a5a8358b74564f1e2214b31bb34eb46f>`_ and ``0x7000000000000000000000000000000000000000000000000000000000000001 (62 0's)`` as huge fee to the transaction `initiator <https://etherscan.io/address/0xd6a09bdb29e1eafa92a30373c44b09e2e2e0651e>`_. An attacker called *proxyOverflow()* function which was designed for transfering tokens on behalf on someone else by taking a fee. Line 206 of this smart contract was vulnerable and sum of *_feeSmt and _value* produced zero and bypassed the sanity check in line 206:
 
 .. figure:: images/batch_overflow_05.png
     :figclass: align-center
@@ -74,14 +74,14 @@ As shown above, the arithmetic result of numeric values outside of the represent
 
 Mitigation
 **********
-To prevent overflow attack, it is recommended to use `SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity>`_ and becomes industry standard for catching overflows. Additionally, auditing before launching the code could prevent such human errors and help to be in compliance with best practices. We used SafeMath library and re-implemented vulnerable functions in the previous section:
+To prevent overflow attack, it is recommended to use `SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library when performing any arithmetic calculations. This library offered by `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity>`_ and becomes industry standard for catching overflows. Moreover, auditing before launching the code could prevent such human errors and help to be in compliance with best practices. We used SafeMath library and re-implemented vulnerable functions in the previous section:
 
 .. figure:: images/batch_overflow_08.png
     :figclass: align-center
     
     Figure 8: Re-implemented multiply function by using SafeMath library
 
-This time, execution of *a_multiply_b()* function raised an exception and stopped code execution:
+This time, execution of *a_multiply_b()* function raised an exception and stopped execution of the code:
 
 .. figure:: images/batch_overflow_09.png
     :figclass: align-center
@@ -254,7 +254,7 @@ Full code using SafeMath:
 
 Recommendation
 **************
-In order to have a safe solidity code, it is recoomended to use `SafeMath <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library in any arithmetic operation.
+In order to have a secure solidity code, it is recoomended to use `SafeMath <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library in any arithmetic operation.
 
 |
 |
