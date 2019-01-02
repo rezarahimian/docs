@@ -254,7 +254,7 @@ Full code using SafeMath:
 
 Recommendation
 **************
-In order to have a secure solidity code, it is recommended to use `SafeMath <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library in any arithmetic operation.
+In order to have a secure solidity code and mitigate against overflow attack, it is recommended to use `SafeMath <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library in any arithmetic operation.
 
 |
 |
