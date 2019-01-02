@@ -90,7 +90,7 @@ This time, execution of *a_multiply_b()* function raised an exception and stoppe
     
 Full Code:
 
-.. code-block:: c
+.. code-block:: java
     :emphasize-lines: 137, 154
     :linenos:
 
@@ -265,6 +265,6 @@ In order to have a safe solidity code, it is recoomended to use `SafeMath <https
 ----
 
 :Date:  2018-12-26
-:Updated:   2019-01-02
+:Updated:   date:: %H:%M
 :Version:   1.0
 :Authors:   :ref:`about`
