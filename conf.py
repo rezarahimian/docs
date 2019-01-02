@@ -5,6 +5,7 @@ copyright = u'-'
 author = u'-'
 show_authors = True
 html_theme = "agogo"
+html_last_updated_fmt = '%b %d, %Y, %X'
 html_theme_options = {
   "body_min_width" : "60%",
   "sidebarwidth" : "200px",
