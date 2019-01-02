@@ -6,6 +6,9 @@ author = u'-'
 show_authors = True
 html_theme = "agogo"
 html_last_updated_fmt = '%b %d, %Y, %X'
+html_sidebars = {
+   '**': ['globaltoc.html', 'sourcelink.html']
+}
 html_use_index = False
 html_copy_source = False
 html_theme_options = {
