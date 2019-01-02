@@ -256,9 +256,9 @@ Conclusion
 **********
 In order to have a safe solidity code, it is recoomended to use `SafeMath <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol>`_ library in any arithmetic operation.
 
-``
-``
-``
+|
+|
+|
 
 ----
 
