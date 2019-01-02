@@ -91,6 +91,7 @@ This time, execution of *a_multiply_b()* function raised an exception and stoppe
 Full Code:
 
 .. code-block:: java
+    :emphasize-lines: 137
     :linenos:
 
     pragma solidity ^0.5.2;
@@ -217,7 +218,7 @@ Full Code:
      * @title multiplyDemoSafe
      * @dev Use SafeMath to prevent overflow attack
      */
-    contract multiplyDemoSafe{
+    contract multiplyDemoSafe {
         using SafeMath for uint256;
 
         uint256 public a = 0x8000000000000000000000000000000000000000000000000000000000000000;
@@ -233,6 +234,23 @@ Full Code:
             return (c == 0) ? true : false;
         }    
     }
+    
+    contract additionDemoSafe {
+        using SafeMath for uint256;
+
+        uint256 public a = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint256 public b = 0x0000000000000000000000000000000000000000000000000000000000000001;
+        uint256 public c;
+
+        constructor() public {
+            c = 0x3;
+        }
+
+        function a_plus_b() public returns (bool){
+            c = a.add(b);
+            return (c == 0) ? true : false;
+        }
+    } 
 
 Conclusion
 **********
