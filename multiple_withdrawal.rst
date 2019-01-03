@@ -44,7 +44,7 @@ Suggested solutions
 *******************
 Several solutions have been suggested by Ethereum community (mostly from developers on Github) to address this attack. These are some considerations for each suggested solution that we discuss them separately in term of compatibility and security:
 
-1. Enforcement in User Interface (UI)
+1. Enforcement by User Interface (UI)
 =====================================
 ERC20 standard emphasises that:
 
