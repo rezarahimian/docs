@@ -242,7 +242,7 @@ Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
 
 .. figure:: images/multiple_withdrawal_18.png
-    :scale: 80%
+    :scale: 75%
     :figclass: align-center
     
     Figure 18: Proposed ERC20 implementation on Rinkby test network
