@@ -61,7 +61,7 @@ So, they recommend to enforce approval processing check in UI level. If someone 
 As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic functionalities by implementing only essential methods. In other words, by skipping implementation of vulnerable functions, effecting the attack would not be possible:
 
 .. figure:: images/multiple_withdrawal_04.png
-    :scale: 80%
+    :scale: 90%
     :figclass: align-center
     
     Figure 4: Minimum viable token implementation
@@ -170,6 +170,141 @@ As suggested by :cite:`Ref03` changes to ERC20 Approve method by comparing curre
     Figure 12: Suggested ERC20 API Change for Approve method
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any Approve call will throw an exception. Additionally, one more call is required to read current allowance value and pass it to the new Approve method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes the token contract incompatible with deployed smart contracts and wallets. Hence, it could not be a viable solution.
+
+Proposed solution
+*****************
+After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through Transfer events logged on the blockchain, it would not be easily trackable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronisation strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
+
+.. figure:: images/multiple_withdrawal_13.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 13: New added mapping variable to track transferred tokens
+
+Consequently, ``transferFrom`` method will have an new line of code for tracking transferred tokens by adding transferred tokens to ``transferred`` variable:
+
+.. figure:: images/multiple_withdrawal_14.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 14: Modified version of transferFrom based on added mapping variable
+
+Similarly, a block of code will be added to approve function to compare new allowance with transferred tokens. It has to cover all three possible scenarios (i.e., setting to 0, increasing and decreasing allowance):
+
+.. figure:: images/multiple_withdrawal_15.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 15: Added code block to approve function to compare and set new allowance value
+
+Added block code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (Sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
+
+1.	Alice approves Bob for spending 100 tokens and then decides to decrease it to 10 tokens.
+1.1.	Alice approves Bob for transferring 100 tokens.
+1.2.	After a while, Alice decides to reduce Bob’s allowance from 100 to 10 tokens.
+1.3.	Bob noticed Alice’s new transaction and transfers 100 tokens by front-running.
+1.4.	Bob’s allowance is 0 and transferred is 100 (set by transferFrom function).
+1.5.	Alice’s transaction is mined and checks initial allowance (100) with new allowance (10).
+1.6.	As it is reducing, transferred tokens (100) will be compared with new allowance (10).
+1.7.	Since Bob already transferred more tokens, his allowance will set to 0.
+1.8.	Bob is not able to move more than initial approved tokens.
+
+2.	Alice approves Bob for spending 100 tokens and then decides to increase to 120 tokens.
+2.1.	Alice approves Bob for transferring 100 tokens.
+2.2.	After a while, Alice decides to increase Bob’s allowance from 100 to 120 tokens.
+2.3.	Bob noticed Alice’s new transaction and transfers 100 tokens by front-running.
+2.4.	Bob’s allowance is 0 and transferred is 100.
+2.5.	Alice’s transaction is mined and checks initial allowance (100) with new allowance (120).
+2.6.	As it is increasing, new allowance (120) will be subtracted from transferred tokens (100).
+2.7.	20 tokens will be added to Bob’s allowance.
+2.8.	Bob would be able to transfer more 20 tokens (120 in total as Alice wanted).
+
+We can consider the below flowchart demonstrating how does Approve function works. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
+
+.. figure:: images/multiple_withdrawal_16.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 16: Flowchart of added code to Approve function
+
+In order to evaluate functionality of the new ``Approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token.
+
+Standard ERC20 token implementation (TKNv1) on Rinkby test network:
+https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
+
+.. figure:: images/multiple_withdrawal_17.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 17: Standard ERC20 implementation on Rinkby test network
+
+Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
+https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
+
+.. figure:: images/multiple_withdrawal_18.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 18: Proposed ERC20 implementation on Rinkby test network
+    
+We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
+
+#. Without considering race condition.
+#.By considering race condition (Highlighted in Yellow in the following tables)
+
+It would be possible to get different results by tweaking three input parameters:
+
+#. Number of already transferred tokens (T)
+#. Current amount of allowed tokens to transfer (N)
+#. New allowance for transferring tokens (M)
+
+By changing these parameters, we would be able to evaluate all possible results based on different inputs. These results have been summarized in Tables2, 3, 4. For example, Table2 shows result of all possible input values if approver wants to reduce previously allowed transfers. Table3 evaluates the same result for increasing and even passing the same allowance as before. the last table checks input values in boundaries (New allowance = 0 OR New allowance = Current allowance + Transferred tokens).
+
+.. figure:: images/multiple_withdrawal_19.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 19: Test results in case on new allowance (M) < current allowance (N)
+
+.. figure:: images/multiple_withdrawal_20.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 20: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)
+
+.. figure:: images/multiple_withdrawal_21.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 21: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)
+
+In Table1, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M≤ S≤T+N. As we can see this equation is true for all results of Table1 which is showing this attack is not possible in case of reducing allowance. In Table2 and Table3, total transferable tokens MUST be always less than new allowance (S≤M) no matter how many tokens have been already transferred. Result of tests for different input values shows that TKNv2 can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. TokenV2.approve uses almost the same Gas as TokenV1.approve, however, gas consumption of TokenV2.transferFrom is around 50% more than TokenV1.transferFrom. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
+
+.. figure:: images/multiple_withdrawal_22.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 22: comparison of Gas consumption between TKNv1 and TKNv2
+
+Additionally, Transferring and receiving tokens trigger expected events (Visible under Etherscan): 
+
+.. figure:: images/multiple_withdrawal_23.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 23: Logged event by TKNv2 after calling Approve or transferFrom
+
+In term of compatibly, working with current wallets (Like MetaMask) shows no transfer issue:
+
+.. figure:: images/multiple_withdrawal_24.png
+    :scale: 100%
+    :figclass: align-center
+    
+    Figure 24: Compatibility of the token with current wallets
+
+Conclusion
+**********
+Based on ERC20 specifications, token owners should be aware of their approval consequences. If they approve someone to transfer N tokens, spender can transfer exactly N tokens, even if they change allowance to zero afterward. This is considered a legitimate transaction and responsibility of approver before allowing the spender to transfer tokens. An attack can happen when changing allowance from N to M, that allows spender to transfer N+M tokens and effect multiple withdrawal attack. This attack is possible in case of front-running by approved side. As we evaluated possible solutions, all approaches violate ERC20 specifications or have not addressed the attack completely. Proposed solution is to use CAS pattern for checking and setting new allowance atomically. We implemented an ERC20 token that solve this security issue while keeping backward compatibly with already deployed smart contracts or wallets. Although this implementation consumes more Gas than standard ERC20 implementation, it is secure and could be considered for future ERC20 token deployment.
 
 |
 |
