@@ -222,7 +222,7 @@ Added block code to ``Approve`` function will compare new allowance (``_tokens``
 We can consider the below flowchart demonstrating how does Approve function works. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
 
 .. figure:: images/multiple_withdrawal_16.png
-    :scale: 100%
+    :scale: 80%
     :figclass: align-center
     
     Figure 16: Flowchart of added code to Approve function
@@ -250,7 +250,7 @@ https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
 We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
 
 #. Without considering race condition.
-#.By considering race condition (Highlighted in Yellow in the following tables)
+#. By considering race condition (Highlighted in Yellow in the following tables)
 
 It would be possible to get different results by tweaking three input parameters:
 
@@ -297,7 +297,7 @@ Additionally, Transferring and receiving tokens trigger expected events (Visible
 In term of compatibly, working with current wallets (Like MetaMask) shows no transfer issue:
 
 .. figure:: images/multiple_withdrawal_24.png
-    :scale: 100%
+    :scale: 70%
     :figclass: align-center
     
     Figure 24: Compatibility of the token with current wallets
