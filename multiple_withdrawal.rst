@@ -222,7 +222,7 @@ Added block code to ``Approve`` function will compare new allowance (``_tokens``
 We can consider the below flowchart demonstrating how does Approve function works. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
 
 .. figure:: images/multiple_withdrawal_16.png
-    :scale: 80%
+    :scale: 70%
     :figclass: align-center
     
     Figure 16: Flowchart of added code to Approve function
@@ -233,7 +233,7 @@ Standard ERC20 token implementation (TKNv1) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
 
 .. figure:: images/multiple_withdrawal_17.png
-    :scale: 100%
+    :scale: 90%
     :figclass: align-center
     
     Figure 17: Standard ERC20 implementation on Rinkby test network
@@ -242,7 +242,7 @@ Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
 
 .. figure:: images/multiple_withdrawal_18.png
-    :scale: 100%
+    :scale: 80%
     :figclass: align-center
     
     Figure 18: Proposed ERC20 implementation on Rinkby test network
