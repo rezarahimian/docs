@@ -17,7 +17,7 @@ Description
     :scale: 90%
     :figclass: align-center
     
-    `Figure 1: Standard ERC20 ``approve`` and ``transferFrom`` methodes`
+    *Figure 1: Standard ERC20 ``approve`` and ``transferFrom`` methodes*
     
 As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Here could be a possible attack scenario:
 
