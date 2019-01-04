@@ -17,7 +17,7 @@ Description
     :scale: 90%
     :figclass: align-center
     
-    *Figure 1: Standard ERC20 ``approve`` and ``transferFrom`` methodes*
+    *Figure 1: Standard ERC20 approve and transferFrom methodes*
     
 As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Here could be a possible attack scenario:
 
@@ -35,7 +35,7 @@ In fact, Alice attempted to change Bob's allowance from ``N`` to ``M``, but she 
     :scale: 50%
     :figclass: align-center
     
-    Figure 2: Possible multiple withdrawal attack in ERC20 tokens
+    *Figure 2: Possible multiple withdrawal attack in ERC20 tokens*
 
 The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw ``N`` tokens after the initial Alice’s approval, this would be considered as a legit transfer since Alice has already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). So we are looking for a solution to prevent multiple withdrawal ``(N+M)`` by Bob assuming that Alice has more than ``N+M`` tokens in her wallet.
 Authors of ERC20 token Standard, provided two example implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. Hence, we have to evaluate most of the suggested solutions in term of compatibly with the standard and mitigation against the attack.
@@ -54,7 +54,7 @@ ERC20 standard emphasises that:
     :scale: 80%
     :figclass: align-center
     
-    Figure 3: Recommendation of ERC20 standard to mitigate multiple withdrawal attack
+    *Figure 3: Recommendation of ERC20 standard to mitigate multiple withdrawal attack*
 
 So, they recommend to set allowance to ``zero`` before any ``non-zero`` values and enforce approval processing check in UI level instead of solidity level. If Alice does not use UI and connects directly to the blockchain, there would be good chance of impacting by this attack. Furthermore, as discussed `here <https://github.com/OpenZeppelin/openzeppelin-solidity/issues/438#issuecomment-329172399>`_, this approach is not sufficient and still allows Bob to transfer ``N+M`` tokens:
 
@@ -76,7 +76,7 @@ As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic f
     :scale: 90%
     :figclass: align-center
     
-    Figure 4: Minimum viable ERC20 token implementation
+    *Figure 4: Minimum viable ERC20 token implementation*
 
 While removing ``approve`` and ``transferFrom`` functions will prevent multiple withdrawal attack, it makes this token incompatible with properties of ERC20 standards. Acording to ERC20 specifications, these methods are not OPTIONAL and must be implemented. Moreover, ignoring them will cause failed function calls by standard wallets that expect to call them. So, we would not consider this solution as a compatible fix although mitigates the vulnerability.
 
@@ -88,7 +88,7 @@ Approving token transfer to non-upgradable smart contracts would be safe. Becaus
     :scale: 100%
     :figclass: align-center
     
-    Figure 5: Verified code of a trusted smart contract before approving token transfers
+    *Figure 5: Verified code of a trusted smart contract before approving token transfers*
 
 However, upgradable smart contracts may add new logics to a new version that needs reverification before approving token transfer. Similarly, approving token transfer to people that we trust could be considered as a mitigation plan. Since this solution would have limited use cases, it could not be considered as a comprehensive solution for the attack.
 
@@ -100,7 +100,7 @@ However, upgradable smart contracts may add new logics to a new version that nee
     :scale: 100%
     :figclass: align-center
     
-    Figure 6: MiniMeToken suggestion for adding new codes to ``approve`` method
+    *Figure 6: MiniMeToken suggestion for adding new codes to approve method*
 
 As explained in :ref:`ui_enforcement`, this will not prevent Bob from transfering ``N+M`` tokens. He would be able to take advantage of the gap between two transactions and transfer both previous and new approved tokens.
 
@@ -112,13 +112,13 @@ As explained in :ref:`ui_enforcement`, this will not prevent Bob from transferin
     :scale: 100%
     :figclass: align-center
     
-    Figure 7: Suggested ``approve`` and ``transferFrom`` methods by MonolithDAO
+    *Figure 7: Suggested approve and transferFrom methods by MonolithDAO*
 
 .. figure:: images/multiple_withdrawal_08.png
     :scale: 100%
     :figclass: align-center
     
-    Figure 8: New methods to increase/decrease the amount of approved tokens
+    *Figure 8: New methods to increase/decrease the amount of approved tokens*
 
 In this case, the default ``approve`` function should be called when spender’s allowance is ``zero`` (No approval has been made). If spender’s allowance is ``non-zero``, Increase and decrease functions must be used:
 
@@ -126,7 +126,7 @@ In this case, the default ``approve`` function should be called when spender’s
     :scale: 100%
     :figclass: align-center
     
-    Figure 9: Functionality of ``approve`` method with new added code
+    **Figure 9: Functionality of approve method with new added code*
 
 These two functions will address race condition and prevent allowance double-spend exploit:
 
@@ -146,7 +146,7 @@ Although these two new functions will prevent the attack, they have not been def
     :scale: 100%
     :figclass: align-center
     
-    Figure 10: safeApprove proposal as alternative to ERC20 standard ``approve`` function
+    *Figure 10: safeApprove proposal as alternative to ERC20 standard approve function*
 
 By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. As mentioned in the pervious section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard.
 
@@ -158,7 +158,7 @@ New token standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standa
     :scale: 100%
     :figclass: align-center
     
-    Figure 11: ERC271 token interface
+    *Figure 11: ERC271 token interface*
     
 8. Changing ERC20 API
 =====================
@@ -168,7 +168,7 @@ As suggested by :cite:`Ref03`, changing ERC20 ``approve`` method may solve the i
     :scale: 100%
     :figclass: align-center
     
-    Figure 12: Suggested ERC20 API Change for ``approve`` method
+    *Figure 12: Suggested ERC20 API Change for approve method*
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and wallets. Hence, it could not be a viable solution.
 
@@ -180,7 +180,7 @@ After evaluating suggested solutions, a new solution is required to address this
     :scale: 100%
     :figclass: align-center
     
-    Figure 13: New added mapping variable to track transferred tokens
+    *Figure 13: New added mapping variable to track transferred tokens*
 
 Consequently, ``transferFrom`` method will have an new line of code for tracking transferred tokens by adding transferred tokens to ``transferred`` variable:
 
@@ -188,7 +188,7 @@ Consequently, ``transferFrom`` method will have an new line of code for tracking
     :scale: 100%
     :figclass: align-center
     
-    Figure 14: Modified version of transferFrom based on added mapping variable
+    *Figure 14: Modified version of transferFrom based on added mapping variable*
 
 Similarly, a block of code will be added to approve function to compare new allowance with transferred tokens. It has to cover all three possible scenarios (i.e., setting to 0, increasing and decreasing allowance):
 
@@ -196,7 +196,7 @@ Similarly, a block of code will be added to approve function to compare new allo
     :scale: 100%
     :figclass: align-center
     
-    Figure 15: Added code block to approve function to compare and set new allowance value
+    *Figure 15: Added code block to approve function to compare and set new allowance value*
 
 Added block code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (Sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
 
@@ -226,7 +226,7 @@ We can consider the below flowchart demonstrating how does Approve function work
     :scale: 70%
     :figclass: align-center
     
-    Figure 16: Flowchart of added code to Approve function
+    *Figure 16: Flowchart of added code to Approve function*
 
 In order to evaluate functionality of the new ``Approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token.
 
@@ -237,7 +237,7 @@ https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
     :scale: 90%
     :figclass: align-center
     
-    Figure 17: Standard ERC20 implementation on Rinkby test network
+    *Figure 17: Standard ERC20 implementation on Rinkby test network*
 
 Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
@@ -246,7 +246,7 @@ https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
     :scale: 75%
     :figclass: align-center
     
-    Figure 18: Proposed ERC20 implementation on Rinkby test network
+    *Figure 18: Proposed ERC20 implementation on Rinkby test network*
     
 We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
 
@@ -265,19 +265,19 @@ By changing these parameters, we would be able to evaluate all possible results 
     :scale: 100%
     :figclass: align-center
     
-    Figure 19: Test results in case on new allowance (M) < current allowance (N)
+    *Figure 19: Test results in case on new allowance (M) < current allowance (N)*
 
 .. figure:: images/multiple_withdrawal_20.png
     :scale: 100%
     :figclass: align-center
     
-    Figure 20: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)
+    *Figure 20: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)*
 
 .. figure:: images/multiple_withdrawal_21.png
     :scale: 100%
     :figclass: align-center
     
-    Figure 21: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)
+    *Figure 21: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)*
 
 In Table1, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M≤ S≤T+N. As we can see this equation is true for all results of Table1 which is showing this attack is not possible in case of reducing allowance. In Table2 and Table3, total transferable tokens MUST be always less than new allowance (S≤M) no matter how many tokens have been already transferred. Result of tests for different input values shows that TKNv2 can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. TokenV2.approve uses almost the same Gas as TokenV1.approve, however, gas consumption of TokenV2.transferFrom is around 50% more than TokenV1.transferFrom. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
 
@@ -285,7 +285,7 @@ In Table1, the goal is to prevent spender from transferring more tokens than alr
     :scale: 100%
     :figclass: align-center
     
-    Figure 22: comparison of Gas consumption between TKNv1 and TKNv2
+    *Figure 22: comparison of Gas consumption between TKNv1 and TKNv2*
 
 Additionally, Transferring and receiving tokens trigger expected events (Visible under Etherscan): 
 
@@ -293,7 +293,7 @@ Additionally, Transferring and receiving tokens trigger expected events (Visible
     :scale: 100%
     :figclass: align-center
     
-    Figure 23: Logged event by TKNv2 after calling Approve or transferFrom
+    *Figure 23: Logged event by TKNv2 after calling Approve or transferFrom*
 
 In term of compatibly, working with current wallets (Like MetaMask) shows no transfer issue:
 
@@ -301,7 +301,7 @@ In term of compatibly, working with current wallets (Like MetaMask) shows no tra
     :scale: 70%
     :figclass: align-center
     
-    Figure 24: Compatibility of the token with current wallets
+    *Figure 24: Compatibility of the token with current wallets*
 
 Conclusion
 **********
