@@ -176,13 +176,16 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
-Proposed solution
-*****************
+Comparing possible solutions
+****************************
 As we analyzed other fixes, the solution has to satisfy the following constraints:
 
 #. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing the current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
 #. **Preventing race condition in any situation:**
 
+
+Proposed solution
+*****************
 After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through Transfer events logged on the blockchain, it would not be easily trackable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronisation strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
 
 
