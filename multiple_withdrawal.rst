@@ -152,7 +152,7 @@ By using this function, Alice uses the standard ``approve`` function to set Bob�
 
 7. New token standards
 ======================
-New token standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ have been suggested to solve this security issue and improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible approach instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security in new standards, we would not consider them as target solutions.
+After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
 
 .. figure:: images/multiple_withdrawal_11.png
     :scale: 100%
@@ -162,7 +162,7 @@ New token standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standa
     
 8. Changing ERC20 API
 =====================
-As suggested by :cite:`Ref03`, changing ERC20 ``approve`` method may solve the issue. New ``approve`` method needs to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
+:cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
 .. figure:: images/multiple_withdrawal_12.png
     :scale: 100%
@@ -170,7 +170,7 @@ As suggested by :cite:`Ref03`, changing ERC20 ``approve`` method may solve the i
     
     *Figure 12: Suggested ERC20 API Change for approve method*
     
-In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and wallets. Hence, it could not be a viable solution.
+In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
 Proposed solution
 *****************
