@@ -174,7 +174,13 @@ In order to use this new method, smart contracts have to update their codes to p
 
 Proposed solution
 *****************
+As we analyzed other fixes, the solution has to fullfill these constraints:
+
+#. **backwards compatibility with contracts deployed before:** Is secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove``). Additionally, functionality of ``approve`` methode must be as defined which is settings new allowance, not adjusting allowance by increasing or decreasing it (like ``increaseApproval`` or ``decreaseApproval``)
+#. **Preventing race condition in any situation:**
+
 After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through Transfer events logged on the blockchain, it would not be easily trackable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronisation strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
+
 
 .. figure:: images/multiple_withdrawal_13.png
     :scale: 100%
