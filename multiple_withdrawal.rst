@@ -104,6 +104,8 @@ However, upgradable smart contracts may add new logics to a new version that nee
 
 As explained in :ref:`ui_enforcement`, this will not prevent Bob from transfering ``N+M`` tokens. He would be able to take advantage of the gap between two transactions and transfer both previous and new approved tokens.
 
+.. _monolithDAO_Token:
+
 5. MonolithDAO Token
 ====================
 `MonolithDAO Token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ suggests to add two additional functions and use them when increase or decrease allowed tokens to a spender. ``approve`` function will also have an additional line of code to set allowance to ``zero`` before ``non-zero`` values:
@@ -137,6 +139,8 @@ These two functions will address race condition and prevent allowance double-spe
 #. Alice’s transaction is mined after Bob’s and tries to decrease Bob’s allowance by ``M``. If Bob had already transfered more than ``M`` tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remained allowance and he would be able to transfer the rest (which is legit transfer since Alice has already approved it). If Bob had transfered less than ``M`` tokens, the new allowance will be applied and reduces Bob's allowance by ``M``.
 
 Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by smart contracts that are already deployed on the Ethereum network. Because they will still use ``approve`` method for setting new allowance and not ``increaseApproval`` or ``decreaseApproval``. Moreover, ERC20 specifications does not define any increase or decrease of allowance. It only defines new allowance. For example, if Alice has approved Bob for ``100`` tokens and wants to set it to ``80``, the new allowance should be ``80`` as defined by the standard, while using decrease methodes will set it ``20 (100 - 80 = 20)``. Comparatively, increase methode will set new allowance as ``180``. For these reasons, this solution would not be a compatible solution with ERC20 standard and only is usable if approver or smart contract being aware of these supplementary methods (and logic of them).
+
+.. _alternate_approval_function:
 
 6. Alternate approval function
 ==============================
@@ -174,9 +178,9 @@ In order to use this new method, smart contracts have to update their codes to p
 
 Proposed solution
 *****************
-As we analyzed other fixes, the solution has to fullfill these constraints:
+As we analyzed other fixes, the solution has to satisfy the following constraints:
 
-#. **backwards compatibility with contracts deployed before:** Is secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove``). Additionally, functionality of ``approve`` methode must be as defined which is settings new allowance, not adjusting allowance by increasing or decreasing it (like ``increaseApproval`` or ``decreaseApproval``)
+#. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing the current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
 #. **Preventing race condition in any situation:**
 
 After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through Transfer events logged on the blockchain, it would not be easily trackable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronisation strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
