@@ -41,7 +41,7 @@ The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple
 Authors of ERC20 token Standard, provided two example implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as seperate post `here <https://github.com/ethereum/EIPs/issues/738>`_. It is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack.
 
 .. figure:: images/multiple_withdrawal_25.png
-    :scale: 100%
+    :scale: 70%
     :figclass: align-center
     
     *Figure 3: Raised issue on Github from 2017 and still it is open*
