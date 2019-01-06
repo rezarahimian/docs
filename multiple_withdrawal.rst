@@ -171,7 +171,7 @@ By using this function, Alice uses the standard ``approve`` function to set Bobâ
 
 7. Keeping track of allowance
 =============================
-In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transfered. ``approve`` method sets it to ``false`` if tokens have been used/transferred since the owner last allowance set. Moreover, it uses a new data structure for keep traking of used tokens.
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transfered. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
     :scale: 100%
@@ -179,8 +179,20 @@ In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6
     
     *Figure 12: Using a boolean variable to keeping track of transfered tokens*
    
-This solution is not backward compatible and breaks ERC20 standard. It does not
-    
+This approach could prevent race condition as described below:
+
+#. Alice runs ``approve(_BobAddr, N)`` to allow Bob for transfering ``N`` tokens.
+#. Since Bob's initial allowance is ``0`` and ``used`` flag is ``false``, then sanity check passes and Bob's allowance is set to ``N``.
+#. Alice decides to set Bob's allowance to ``0`` by executing ``approve(_Bob, 0)``.
+#. Bob front-runs Alices transaction and transfers ``N`` tokens. His ``used`` flage turns to ``true`` (because of line 31).
+#. Alice's transaction is mined and passes sanity check in line 15 (because ``_value == 0``).
+#. Bob's allowance is set to ``0`` (line 16).
+#. Alice change Bob's allowance to ``M`` by executing ``approve(_BobAddr, M)``
+#. Since Bob already transferred some tokens, ``used`` flag is ``true`` and it fails the transaction.
+#. Bob's allowance remains as ``N`` and he could transfer only ``N`` tokens.
+
+Although it mitigate the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from ``N`` to ``N+M=L``. If Bob already had transferred number of tokens (even 1 token), Alice would not be able to increase his approval (or set new approval values). Because ``used`` flag is turned to ``true`` (line 31) and does not allow changing allowance to any non-zero values (line 15). Even setting the allowance to ``0``, does not flip ``used`` flag and lock down Bob's allowance change. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to ``0``, ``used`` flag becomes ``false`` and allows non-zero values event if it has been already transferred. In other words, it sets the initial values of allowance similar when nothing is transmitted.
+
 8. New token standards
 ======================
 After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
