@@ -184,14 +184,14 @@ This approach could prevent race condition as described below:
 #. Alice runs ``approve(_BobAddr, N)`` to allow Bob for transfering ``N`` tokens.
 #. Since Bob's initial allowance is ``0`` and ``used`` flag is ``false``, then sanity check passes and Bob's allowance is set to ``N``.
 #. Alice decides to set Bob's allowance to ``0`` by executing ``approve(_Bob, 0)``.
-#. Bob front-runs Alices transaction and transfers ``N`` tokens. His ``used`` flage turns to ``true`` (because of line 31).
+#. Bob front-runs Alice's transaction and transfers ``N`` tokens. His ``used`` flage turns to ``true`` (line 31).
 #. Alice's transaction is mined and passes sanity check in line 15 (because ``_value == 0``).
-#. Bob's allowance is set to ``0`` (line 16).
-#. Alice change Bob's allowance to ``M`` by executing ``approve(_BobAddr, M)``
-#. Since Bob already transferred some tokens, ``used`` flag is ``true`` and it fails the transaction.
+#. Bob's allowance is set to ``0`` (line 16) while ``used`` flag is still ``true``.
+#. Alice changes Bob's allowance to ``M`` by executing ``approve(_BobAddr, M)``
+#. Since Bob already transferred number of tokens, ``used`` flag is ``true`` and it fails the transaction.
 #. Bob's allowance remains as ``N`` and he could transfer only ``N`` tokens.
 
-Although it mitigate the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from ``N`` to ``N+M=L``. If Bob already had transferred number of tokens (even 1 token), Alice would not be able to increase his approval (or set new approval values). Because ``used`` flag is turned to ``true`` (line 31) and does not allow changing allowance to any non-zero values (line 15). Even setting the allowance to ``0``, does not flip ``used`` flag and lock down Bob's allowance change. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to ``0``, ``used`` flag becomes ``false`` and allows non-zero values event if it has been already transferred. In other words, it sets the initial values of allowance similar when nothing is transmitted.
+Although this approach mitigates the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from ``N`` to ``N+M=L``. If Bob already had transferred number of tokens (even 1 token), Alice would not be able to increase his approval (or set new approval values). Because ``used`` flag is turned to ``true`` (line 31) and does not allow changing allowance to any non-zero values (line 15). Even setting the allowance to ``0``, does not flip ``used`` flag and locks down Bob's allowance. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to ``0``, ``used`` flag becomes ``false`` and allows non-zero values event if it has been already transferred. In other words, it sets the initial values of allowance similar when nothing is transmitted. Therefore, it will not be able to address the attack. In short, this approach can not satisfy both legit and non-legit scenarios.
 
 8. New token standards
 ======================
