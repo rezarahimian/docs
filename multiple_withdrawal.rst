@@ -174,7 +174,7 @@ By using this function, Alice uses the standard ``approve`` function to set Bobâ
 In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transfered. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
-    :scale: 100%
+    :scale: 90%
     :figclass: align-center
     
     *Figure 12: Using a boolean variable to keeping track of transfered tokens*
