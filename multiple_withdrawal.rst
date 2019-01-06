@@ -194,7 +194,7 @@ This approach could prevent race condition as described below:
 Although this approach mitigates the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from ``N`` to ``M`` (two non-zero values). Current ``approve`` implementation in line 15  does not allow to set allowance to ``non-zero`` value if current allowance is ``non-zero``. This violates ERC20 standard since it specifies:
 
 .. figure:: images/multiple_withdrawal_28.png
-    :scale: 90%
+    :scale: 85%
     :figclass: align-center
     
     *Figure 13: ERC20 approve methode constraint*
