@@ -193,17 +193,7 @@ This approach could prevent race condition as described below:
 
 Although this approach mitigates the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from ``N`` to ``N+M=L``. If Bob already had transferred number of tokens (even 1 token), Alice would not be able to increase his approval (or set any new approval values). Because ``used`` flag is turned to ``true`` (line 31) and does not allow changing allowance to any non-zero values (line 15). Even setting the allowance to ``0``, does not flip ``used`` flag and keeps Bob's allowance locked. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to ``0``, ``used`` flag becomes ``false`` and allows non-zero values event if tokens have been already transferred. In other words, it resembles the initial values of allowance similar when nothing is transferred. Therefore, it will disable attack mitigation functionality of the code. In short, this approach can not satisfy both legit and non-legit scenarios, though a step forward.
 
-8. New token standards
-======================
-After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
-
-.. figure:: images/multiple_withdrawal_11.png
-    :scale: 100%
-    :figclass: align-center
-    
-    *Figure 13: ERC271 token interface*
-    
-9. Changing ERC20 API
+8. Changing ERC20 API
 =====================
 :cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
@@ -215,13 +205,22 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
+9. New token standards
+======================
+After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
+
+.. figure:: images/multiple_withdrawal_11.png
+    :scale: 100%
+    :figclass: align-center
+    
+    *Figure 13: ERC271 token interface*
+    
 Comparing solutions
 ****************************
 As we analyzed other fixes, the solution has to satisfy the following constraints:
 
 #. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing its current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
 #. **Preventing race condition in any situation:**
-
 
 Proposed solution
 *****************
