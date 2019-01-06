@@ -38,13 +38,13 @@ In fact, Alice attempted to change Bob's allowance from ``N`` to ``M``, but she 
     *Figure 2: Possible multiple withdrawal attack in ERC20 tokens*
 
 The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw ``N`` tokens after the initial Alice’s approval, this would be considered as a legit transfer since Alice has already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). So we are looking for a solution to prevent multiple withdrawal ``(N+M)`` by Bob assuming that Alice has more than ``N+M`` tokens in her wallet.
-Authors of ERC20 token Standard, provided two example implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as seperate post `here <https://github.com/ethereum/EIPs/issues/738>`_. It is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack.
+Authors of ERC20 token Standard, provided two example implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as seperate thread `here <https://github.com/ethereum/EIPs/issues/738>`_. It is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack.
 
 .. figure:: images/multiple_withdrawal_25.png
-    :scale: 70%
+    :scale: 60%
     :figclass: align-center
     
-    *Figure 3: Raised issue on Github from 2017 and still it is open*
+    *Figure 3: Raised issue on Github from October 2017
 
 Suggested solutions
 *******************
@@ -66,13 +66,15 @@ So, they recommend to set allowance to ``zero`` before any ``non-zero`` values a
 
 #. Bob is allowed to transfer ``N`` Alice's tokens.
 #. Alice publishes transaction that changes Bob's allowance to ``0``.
-#. Bob front runs Alice's transaction and transfers ``N`` Alice's tokens.
+#. Bob front runs Alice's transaction and transfers ``N`` Alice's tokens. Bob’s allowance = ``0``.
 #. Alice's transaction is mined and Bob's allowance is now ``0``. This is exactly what she would see if Bob would not transfer any tokens, so she has no reason to think that Bob actually used his allowance before it was revoked.
 #. Now Alice publishes transaction that changes Bob's allowance to ``M``.
 #. Alice's second transaction is mined, so now Bob is allowed to transfer ``M`` Alice's tokens
 #. Bob transfers ``M`` Alice's tokens and in total ``N+M``.
 
-At step 3, Bob is able to transfer ``N`` tokens. This is a legit transaction since Alice has already approved it. The issue will happen after Alice’s new transaction to set Bob’s approval to ``0``. In case of front-running by Bob, Alice needs to check Bob’s allowance for the **second time** before setting to the new value. Alice may notice this by checking ``Transfer`` event that logged by Bob. However, if Bob had transferred tokens to someone else, then ``Transfer`` event will not be linked to Bob, and, if Alice's account is busy and many people are allowed to transfer from it, Alice may not be able to distinguish this transfer from a legite one performed by someone else. So, this solution does not prevent the attack while tries to follow ERC20 recommendations for setting Bob’s allowance to zero before any non-zero value. Hence, enforcement should be considered at contract level not UI level. Additionally, There is no way to see from UI if ``approve(_BobAddr, 0)`` transaction is processed before the subsequent non-zero approval :cite:`Ref03`. This is because of current API in Web3.js [#]_ that does not support such checking :cite:`Ref04`. So, we would not see this enforcement as a feasible solution and consider a contract level check as proper approach.
+At step 3, Bob is able to transfer ``N`` tokens and consequently his allowance becomes ``0`` (because of ``allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_tokens)``). This is a legit transaction since Alice has already approved it. The issue will happen after Alice’s new transaction (``approve(_BobAddr, 0)``) to set Bob’s approval to ``0``. In case of front-running by Bob, Alice needs to check Bob’s allowance for the **second time** before setting any new value. However, she will find out Bob's allowance ``0`` in either case. In other words, she can not distinguish whether Bob's allowance is set to ``0`` because of her ``approve(_BobAddr, 0)`` transaction or Bob's ``transferFrom(_AliceAddr, _BobAddr, _tokens)`` transaction.
+Alice may notice this by checking ``Transfer`` event logged by ``transferFrom`` function. However, if Bob had transferred tokens to someone else (``transferFrom(_AliceAddr, _CarolAddr, _tokens)``), then ``Transfer`` event will not be linked to Bob, and, if Alice's account is busy and many people are allowed to transfer from it, Alice may not be able to distinguish this transfer from a legite one performed by someone else.
+So, this solution does not prevent the attack while tries to follow ERC20 recommendations for setting Bob’s allowance to zero before any non-zero value. Hence, enforcement should be considered at contract level not UI level (Interestingly, *OpenZeppelin* example implements a workaround in contract level that makes it inconsisitent with text of ERC20). Additionally, There is no way to see from UI if ``approve(_BobAddr, 0)`` transaction is processed before the subsequent non-zero approval :cite:`Ref03`. This is because of current API in Web3.js [#]_ that does not support such checking :cite:`Ref04`. So, we would not see this enforcement as a feasible solution and consider the contract enforce it.
 
 2. Using minimum viable token
 =============================
@@ -100,7 +102,7 @@ However, upgradable smart contracts may add new logics to a new version that nee
 
 4. MiniMeToken implementation
 =============================
-`MiniMeToken <https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol#L225>`_ reduces allowance to ``zero`` before ``non-zero`` approval (As recommended by ERC20 specification). As shown in the screenshot, the red clause in ``approve`` method, allows to set approval to ``0`` and blue condition checks allowance of ``_spender`` to be ``0`` before setting to other values (If ``_spender`` allowance is ``0`` then allows ``non-zero`` values):
+`MiniMeToken <https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol#L225>`_ reduces allowance to ``zero`` before ``non-zero`` approval (As recommended by ERC20 specification). As shown in the screenshot, the red clause in ``approve`` method, allows to set approval to ``0`` and blue condition checks allowance of ``_spender`` to be ``0`` before setting to other values (i.e., If ``_spender`` allowance is ``0`` then allows ``non-zero`` values):
 
 .. figure:: images/multiple_withdrawal_06.png
     :scale: 100%
@@ -108,7 +110,14 @@ However, upgradable smart contracts may add new logics to a new version that nee
     
     *Figure 7: MiniMeToken suggestion for adding new codes to approve method*
 
-As explained in :ref:`ui_enforcement`, this will not prevent Bob from transfering ``N+M`` tokens. He would be able to take advantage of the gap between two transactions and transfer both previous and new approved tokens.
+Similair to :ref:`ui_enforcement`, this will not prevent Bob from transfering ``N+M`` tokens. Because Alice would not be able to distinguish whether ``N`` tokens have been already transfered or not. It will be more clear by considering the following situation:
+
+#. Alice decides to set Bob's allowance from ``0`` (``approve(_BobAddr,0)``).
+#. Bob front-runs Alice's transaction and his allowance sets to ``0`` after transfering ``N`` tokens (``allowed[_AliceAddr][_BobAddr] = allowed[_AliceAddr][_BobAddr].sub(N)``)
+#. Alice's transaction execute and sets Bob's allowance to ``0`` (Red clause passes sanity check)
+#. Alice checks Bob's allowance and she will find it zero, so, she can not determine whether this was because of her transaction or Bob already transfered ``N`` tokens.
+#. By considering that Bob has not been transfered any tokens, Alice allows Bob for transfering new ``M`` tokens .
+#. Bob would be able to take advantage of the gap between two transactions and transfer both previous and new approved tokens.
 
 .. _monolithDAO_Token:
 
