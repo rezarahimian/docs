@@ -167,9 +167,21 @@ Although these two new functions will prevent the attack, they have not been def
     
     *Figure 11: safeApprove proposal as alternative to ERC20 standard approve function*
 
-By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. As mentioned in the pervious section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard.
+By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the pervious section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
 
-7. New token standards
+7. Keeping track of allowance
+=============================
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transfered. ``approve`` method sets it to ``false`` if tokens have been used/transferred since the owner last allowance set. Moreover, it uses a new data structure for keep traking of used tokens.
+
+.. figure:: images/multiple_withdrawal_26.png
+    :scale: 100%
+    :figclass: align-center
+    
+    *Figure 12: Using a boolean variable to keeping track of transfered tokens*
+   
+This solution is not backward compatible and breaks ERC20 standard. It does not
+    
+8. New token standards
 ======================
 After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
 
@@ -177,9 +189,9 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     :scale: 100%
     :figclass: align-center
     
-    *Figure 12: ERC271 token interface*
+    *Figure 13: ERC271 token interface*
     
-8. Changing ERC20 API
+9. Changing ERC20 API
 =====================
 :cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
@@ -195,7 +207,7 @@ Comparing possible solutions
 ****************************
 As we analyzed other fixes, the solution has to satisfy the following constraints:
 
-#. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing the current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
+#. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing its current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
 #. **Preventing race condition in any situation:**
 
 
