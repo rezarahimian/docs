@@ -215,7 +215,7 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
-Comparing possible solutions
+Comparing solutions
 ****************************
 As we analyzed other fixes, the solution has to satisfy the following constraints:
 
