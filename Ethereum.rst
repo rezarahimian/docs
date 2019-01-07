@@ -4,8 +4,6 @@
 Ethereum Projects
 #################
 
-This section contains projects based-on Ethereum blockchain:
-
 .. toctree::
    :maxdepth: 4
 
