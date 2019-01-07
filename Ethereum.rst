@@ -8,4 +8,3 @@ Ethereum Projects
    :maxdepth: 4
 
    erc20-tokens.rst   
-   remixide.rst
