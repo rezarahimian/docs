@@ -9,5 +9,4 @@ ERC-20 tokens
 
    erc20-intro.rst
    overflow.rst
-   multiple_withdrawal.rst
-   erc20-conclusion.rst
+   multiple_withdrawal.rst   
