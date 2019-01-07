@@ -225,10 +225,17 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 Comparing solutions
 ****************************
-As we analyzed other fixes, the solution has to satisfy the following constraints:
+As we analyzed suggested fixes and evaluated them to satisfy the following constraints:
 
 #. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing its current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
 #. **Preventing race condition in any situation:**
+
+.. figure:: images/multiple_withdrawal_27.png
+    :scale: 100%
+    :figclass: align-center
+    
+    *Figure 14: Comparing suggested solutions*
+
 
 Proposed solution
 *****************
