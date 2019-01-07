@@ -209,7 +209,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
     :scale: 100%
     :figclass: align-center
     
-    *Figure 13: Suggested ERC20 API Change for approve method*
+    *Figure 14: Suggested ERC20 API Change for approve method*
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
@@ -221,7 +221,7 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     :scale: 100%
     :figclass: align-center
     
-    *Figure 13: ERC271 token interface*
+    *Figure 15: ERC271 token interface*
     
 Comparing solutions
 ****************************
@@ -231,11 +231,10 @@ As we analyzed suggested fixes and evaluated them to satisfy the following const
 #. **Preventing race condition in any situation:**
 
 .. figure:: images/multiple_withdrawal_27.png
-    :scale: 100%
+    :scale: 90%
     :figclass: align-center
     
-    *Figure 14: Comparing suggested solutions*
-
+    *Figure 16: Comparing suggested solutions*
 
 Proposed solution
 *****************
@@ -246,7 +245,7 @@ After evaluating suggested solutions, a new solution is required to address this
     :scale: 100%
     :figclass: align-center
     
-    *Figure 14: New added mapping variable to track transferred tokens*
+    *Figure 17: New added mapping variable to track transferred tokens*
 
 Consequently, ``transferFrom`` method will have an new line of code for tracking transferred tokens by adding transferred tokens to ``transferred`` variable:
 
@@ -254,7 +253,7 @@ Consequently, ``transferFrom`` method will have an new line of code for tracking
     :scale: 100%
     :figclass: align-center
     
-    *Figure 15: Modified version of transferFrom based on added mapping variable*
+    *Figure 18: Modified version of transferFrom based on added mapping variable*
 
 Similarly, a block of code will be added to approve function to compare new allowance with transferred tokens. It has to cover all three possible scenarios (i.e., setting to 0, increasing and decreasing allowance):
 
@@ -262,7 +261,7 @@ Similarly, a block of code will be added to approve function to compare new allo
     :scale: 100%
     :figclass: align-center
     
-    *Figure 16: Added code block to approve function to compare and set new allowance value*
+    *Figure 19: Added code block to approve function to compare and set new allowance value*
 
 Added block code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (Sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
 
@@ -292,7 +291,7 @@ We can consider the below flowchart demonstrating how does Approve function work
     :scale: 70%
     :figclass: align-center
     
-    *Figure 17: Flowchart of added code to Approve function*
+    *Figure 20: Flowchart of added code to Approve function*
 
 In order to evaluate functionality of the new ``Approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token.
 
@@ -303,7 +302,7 @@ https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
     :scale: 90%
     :figclass: align-center
     
-    *Figure 18: Standard ERC20 implementation on Rinkby test network*
+    *Figure 21: Standard ERC20 implementation on Rinkby test network*
 
 Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
@@ -312,7 +311,7 @@ https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
     :scale: 75%
     :figclass: align-center
     
-    *Figure 19: Proposed ERC20 implementation on Rinkby test network*
+    *Figure 22: Proposed ERC20 implementation on Rinkby test network*
     
 We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
 
@@ -351,7 +350,7 @@ In Table1, the goal is to prevent spender from transferring more tokens than alr
     :scale: 100%
     :figclass: align-center
     
-    *Figure 20: comparison of Gas consumption between TKNv1 and TKNv2*
+    *Table 5: comparison of Gas consumption between TKNv1 and TKNv2*
 
 Additionally, Transferring and receiving tokens trigger expected events (Visible under Etherscan): 
 
@@ -359,7 +358,7 @@ Additionally, Transferring and receiving tokens trigger expected events (Visible
     :scale: 100%
     :figclass: align-center
     
-    *Figure 21: Logged event by TKNv2 after calling Approve or transferFrom*
+    *Figure 23: Logged event by TKNv2 after calling Approve or transferFrom*
 
 In term of compatibly, working with current wallets (Like MetaMask) shows no transfer issue:
 
@@ -367,7 +366,7 @@ In term of compatibly, working with current wallets (Like MetaMask) shows no tra
     :scale: 70%
     :figclass: align-center
     
-    *Figure 22: Compatibility of the token with current wallets*
+    *Figure 24: Compatibility of the token with current wallets*
 
 Conclusion
 **********
