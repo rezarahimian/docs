@@ -83,7 +83,7 @@ So, this solution does not prevent the attack while tries to follow ERC20 recomm
 As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic functionalities by implementing only essential methods. In other words, skipping implementation of vulnerable functions will prevent effecting of the attack:
 
 .. figure:: images/multiple_withdrawal_04.png
-    :scale: 80%
+    :scale: 85%
     :figclass: align-center
     
     *Figure 5: Minimum viable ERC20 token implementation*
@@ -153,9 +153,9 @@ These two functions will address race condition and prevent allowance double-spe
 #. After a while, Alice decides to decrease Bob’s approval by ``M`` and calls ``decreaseApproval(_BobAddr, M)``.
 #. Bob notices Alice's second transaction and front runs it by calling ``transferFrom(_AlicAddr, _BobAddr, N)``.
 #. Bob’s transaction will be executed and transfers ``N`` token to his account and the allowance becomes ``0`` as result of this transfer.
-#. Alice’s transaction is mined after Bob’s and tries to decrease Bob’s allowance by ``M``. If Bob had already transferred more than ``M`` tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remained allowance and he would be able to transfer the rest (which is legit transfer since Alice has already approved it). If Bob had transfered less than ``M`` tokens, the new allowance will be applied and reduces Bob's allowance by ``M``.
+#. Alice’s transaction is mined after Bob’s and tries to decrease Bob’s allowance by ``M``. If Bob had already transferred more than ``M`` tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remained allowance and he would be able to transfer the rest (which is legit transfer since Alice has already approved it). If Bob had transferred less than ``M`` tokens, the new allowance will be applied and reduces Bob's allowance by ``M``.
 
-Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by smart contracts that are already deployed on the Ethereum network. Because they will still use ``approve`` method for setting new allowance and not ``increaseApproval`` or ``decreaseApproval``. Moreover, ERC20 specifications does not define any increase or decrease of allowance. It only defines new allowance. For example, if Alice has approved Bob for ``100`` tokens and wants to set it to ``80``, the new allowance should be ``80`` as defined by the standard, while using decrease methodes will set it ``20 (100 - 80 = 20)``. Comparatively, increase methode will set new allowance as ``180``. For these reasons, this solution would not be a compatible solution with ERC20 standard and only is usable if approver or smart contract being aware of these supplementary methods (and logic of them).
+Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by smart contracts that are already deployed on the Ethereum network. Because they will still use ``approve`` method for setting new allowance and not ``increaseApproval`` or ``decreaseApproval``. Moreover, ERC20 specifications does not define any increase or decrease of allowance. It only defines new allowance. For example, if Alice has approved Bob for ``100`` tokens and wants to set it to ``80``, the new allowance should be ``80`` as defined by the standard, while using decrease methods will set it ``20 (100 - 80 = 20)``. Comparatively, increase method will set new allowance as ``180``. For these reasons, this solution would not be a compatible solution with ERC20 standard and only is usable if approver or smart contract being aware of these supplementary methods (and logic of them).
 
 .. _alternate_approval_function:
 
@@ -169,11 +169,11 @@ Although these two new functions will prevent the attack, they have not been def
     
     *Figure 11: safeApprove proposal as alternative to ERC20 standard approve function*
 
-By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the pervious section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
+By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the last section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
 
 7. Keeping track of allowance
 =============================
-In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transfered. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transferred. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
     :scale: 90%
@@ -183,7 +183,7 @@ In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6
    
 This approach could prevent race condition as described below:
 
-#. Alice runs ``approve(_BobAddr, N)`` to allow Bob for transfering ``N`` tokens.
+#. Alice runs ``approve(_BobAddr, N)`` to allow Bob for transferring ``N`` tokens.
 #. Since Bob's initial allowance is ``0`` and ``used`` flag is ``false``, then sanity check passes and Bob's allowance is set to ``N``.
 #. Alice decides to set Bob's allowance to ``0`` by executing ``approve(_Bob, 0)``.
 #. Bob front-runs Alice's transaction and transfers ``N`` tokens. His ``used`` flage turns to ``true`` (line 31).
@@ -199,7 +199,7 @@ Although this approach mitigates the attack, it prevents any further legitimate 
     :scale: 85%
     :figclass: align-center
     
-    *Figure 13: ERC20 approve methode constraint*
+    *Figure 13: ERC20 approve method constraint*
 
 Nevertheless, it is a step forward by introducing the need for a new variable to track transferred tokens.
 
@@ -240,7 +240,7 @@ As we analyzed suggested fixes and evaluated them to satisfy the following const
 
 Proposed solution
 *****************
-After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through Transfer events logged on the blockchain, it would not be easily trackable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronisation strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
+After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events logged on the blockchain, it would not be easily traceable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
 
 
 .. figure:: images/multiple_withdrawal_13.png
