@@ -207,7 +207,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
 ====================================
 Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens. It uses the same data structure for storing ``residual`` tokens:
 
-.. figure:: images/multiple_withdrawal_298.png
+.. figure:: images/multiple_withdrawal_29.png
     :scale: 100%
     :figclass: align-center
     
