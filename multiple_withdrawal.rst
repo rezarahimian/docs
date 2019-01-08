@@ -171,9 +171,9 @@ Although these two new functions will prevent the attack, they have not been def
 
 By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the last section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
 
-7. Keeping track of allowance
-=============================
-In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transferred. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
+7. Detection of token transfer
+==============================
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used to detect whether any tokens have been transferred or not. ``transferFrom`` method sets a flag to ``true`` if tokens are transferred. ``approve`` method checks the flag to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
     :scale: 90%
@@ -203,7 +203,31 @@ Although this approach mitigates the attack, it prevents any further legitimate 
 
 Nevertheless, it is a step forward by introducing the need for a new variable to track transferred tokens.
 
-8. Changing ERC20 API
+8. Keeping track of remaining tokens
+====================================
+Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens. It uses the same data structure for storing ``residual`` tokens:
+
+.. figure:: images/multiple_withdrawal_298.png
+    :scale: 100%
+    :figclass: align-center
+    
+    *Figure 14: Keeping track of remaining tokens*
+
+At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resemble the situation that we explained in :ref:`ui_enforcement`:
+
+#. Bob's allowance is initially zero (``_allowance.initial=0``, ``_allowance.residual=0``).
+#. Alice allows Bob for transferring ``N`` tokens (``_allowance.initial=N``, ``_allowance.residual=N``).
+#. Alice decides to change Bob's allowance to ``M``.
+#. Alice sets Bob's allowance to zero before any non-zero values.
+#. Bob's transfers ``N`` tokens before Alice's transaction (``allowances[_AliceAddr][msg.sender].residual=0``).
+#. Alice's transaction is mined and sets ``_allowance.initial=0`` and ``_allowance.residual=0``
+#. This is like the situation that no token has been transferred. So, Alice assumes that Bob has not spent any token.
+#. Alice approves Bob for spending more ``M`` tokens.
+#. Bob is able to transfer new ``M`` tokes in addition to initial ``N`` tokens.
+
+As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third person. Checking Alice's token balance also would be an accurate way if token is busy and there are lot of transfers. So, it would not feasible for Alice to detect legit from non-legit transfers.
+
+9. Changing ERC20 API
 =====================
 :cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
@@ -215,7 +239,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
-9. New token standards
+10. New token standards
 ======================
 After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
 
