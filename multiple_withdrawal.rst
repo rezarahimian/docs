@@ -205,7 +205,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
 
 8. Keeping track of remaining tokens
 ====================================
-Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens. It uses the same data structure for storing ``residual`` tokens:
+Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens instead of detecting token transfers. It uses modifed version of data structure that used in the previous solution for storing ``residual`` tokens:
 
 .. figure:: images/multiple_withdrawal_29.png
     :scale: 100%
@@ -215,14 +215,13 @@ Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-3739
 
 At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resemble the situation that we explained in :ref:`ui_enforcement`:
 
-#. Bob's allowance is initially zero (``_allowance.initial=0``, ``_allowance.residual=0``).
-#. Alice allows Bob for transferring ``N`` tokens (``_allowance.initial=N``, ``_allowance.residual=N``).
-#. Alice decides to change Bob's allowance to ``M``.
-#. Alice sets Bob's allowance to zero before any non-zero values.
-#. Bob's transfers ``N`` tokens before Alice's transaction (``allowances[_AliceAddr][msg.sender].residual=0``).
-#. Alice's transaction is mined and sets ``_allowance.initial=0`` and ``_allowance.residual=0``
-#. This is like the situation that no token has been transferred. So, Alice assumes that Bob has not spent any token.
-#. Alice approves Bob for spending more ``M`` tokens.
+#. Bob's allowance is initially zero (``allowances[_AliceAddr][_BobAddr].initial=0``, ``allowances[msg.sender][spender].residual=0``).
+#. Alice allows Bob to transfer ``N`` tokens (``allowances[_AliceAddr][_BobAddr].initial=N``, ``allowances[_AliceAddr][_BobAddr].residual=N``).
+#. Alice decides to change Bob's allowance to ``M`` and has to sets it to zero before any non-zero values.
+#. Bob noticed and  transferred ``N`` tokens before Alice's transaction (``allowances[_AliceAddr][_BobAddr].residual=0``).
+#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0``
+#. This is like that no token has been transferred. So, Alice assumes that Bob has not spent any token.
+#. Alice approves Bob for spending new ``M`` tokens.
 #. Bob is able to transfer new ``M`` tokes in addition to initial ``N`` tokens.
 
 As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third person. Checking Alice's token balance also would be an accurate way if token is busy and there are lot of transfers. So, it would not feasible for Alice to detect legit from non-legit transfers.
