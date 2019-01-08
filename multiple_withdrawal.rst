@@ -217,14 +217,14 @@ At first, it seems that this solution is a sustainable way to mitigate the attac
 
 #. Bob's allowance is initially zero (``allowances[_AliceAddr][_BobAddr].initial=0``, ``allowances[msg.sender][spender].residual=0``).
 #. Alice allows Bob to transfer ``N`` tokens (``allowances[_AliceAddr][_BobAddr].initial=N``, ``allowances[_AliceAddr][_BobAddr].residual=N``).
-#. Alice decides to change Bob's allowance to ``M`` and has to sets it to zero before any non-zero values.
-#. Bob noticed and  transferred ``N`` tokens before Alice's transaction (``allowances[_AliceAddr][_BobAddr].residual=0``).
-#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0``
-#. This is like that no token has been transferred. So, Alice assumes that Bob has not spent any token.
+#. Alice decides to change Bob's allowance to ``M`` and has to set it to zero before any non-zero values.
+#. Bob noticed Alice's transaction for setting his allowance to zero and  transferred ``N`` tokens in advance. ``transferFrom`` sets his allowance (residual) to zero consequently (``allowances[_AliceAddr][_BobAddr].residual=0``).
+#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0`` (Similar to step 1).
+#. This is like that no token has been transferred. So, Alice would not be able to distinguish whether any token have been transferred or not.
 #. Alice approves Bob for spending new ``M`` tokens.
 #. Bob is able to transfer new ``M`` tokes in addition to initial ``N`` tokens.
 
-As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third person. Checking Alice's token balance also would be an accurate way if token is busy and there are lot of transfers. So, it would not feasible for Alice to detect legit from non-legit transfers.
+Someone may think of using ``Transfer`` event to detect transferred tokens or checking approver's balance to see any transferred tokens. As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third party. Checking approver's balance also would not be an accurate way if the contract is busy and there are lot of transfers. So, it would be difficult for the approver to detect legit from non-legit transferred tokens.
 
 9. Changing ERC20 API
 =====================
