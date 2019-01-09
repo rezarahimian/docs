@@ -171,9 +171,9 @@ Although these two new functions will prevent the attack, they have not been def
 
 By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to ``0`` and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the last section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
 
-7. Keeping track of allowance
-=============================
-In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used for keeping track of allowance. ``transferFrom`` method sets it to ``true`` if tokens are transferred. ``approve`` method checks it to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
+7. Detecting token transfers
+============================
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used to detect whether any tokens have been transferred or not. ``transferFrom`` method sets a flag to ``true`` if tokens are transferred. ``approve`` method checks the flag to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
     :scale: 90%
@@ -203,7 +203,30 @@ Although this approach mitigates the attack, it prevents any further legitimate 
 
 Nevertheless, it is a step forward by introducing the need for a new variable to track transferred tokens.
 
-8. Changing ERC20 API
+8. Keeping track of remaining tokens
+====================================
+Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens instead of detecting token transfers. It uses modifed version of data structure that used in the previous solution for storing ``residual`` tokens:
+
+.. figure:: images/multiple_withdrawal_29.png
+    :scale: 100%
+    :figclass: align-center
+    
+    *Figure 14: Keeping track of remaining tokens*
+
+At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resemble the situation that we explained in :ref:`ui_enforcement`:
+
+#. Bob's allowance is initially zero (``allowances[_AliceAddr][_BobAddr].initial=0``, ``allowances[msg.sender][spender].residual=0``).
+#. Alice allows Bob to transfer ``N`` tokens (``allowances[_AliceAddr][_BobAddr].initial=N``, ``allowances[_AliceAddr][_BobAddr].residual=N``).
+#. Alice decides to change Bob's allowance to ``M`` and has to set it to zero before any non-zero values.
+#. Bob noticed Alice's transaction for setting his allowance to zero and  transferred ``N`` tokens in advance. ``transferFrom`` sets his allowance (residual) to zero consequently (``allowances[_AliceAddr][_BobAddr].residual=0``).
+#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0`` (Similar to step 1).
+#. This is like that no token has been transferred. So, Alice would not be able to distinguish whether any token have been transferred or not.
+#. Alice approves Bob for spending new ``M`` tokens.
+#. Bob is able to transfer new ``M`` tokes in addition to initial ``N`` tokens.
+
+Someone may think of using ``Transfer`` event to detect transferred tokens or checking approver's balance to see any transferred tokens. As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third party. Checking approver's balance also would not be an accurate way if the contract is busy and there are lot of transfers. So, it would be difficult for the approver to detect legit from non-legit transferred tokens.
+
+9. Changing ERC20 API
 =====================
 :cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
@@ -215,7 +238,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
     
 In order to use this new method, smart contracts have to update their codes to provide three parameters instead of current two, otherwise any ``approve`` call will throw an exception. Moreover, one more call is required to read current allowance value and pass it to the new ``approve`` method. New events need to be added to ERC20 specification to log an approval events with four arguments. For backward compatibility reasons, both three-arguments and new four-arguments events have to be logged. All of these changes makes this token contract incompatible with deployed smart contracts and software wallets. Hence, it could not be considered as viable solution.
 
-9. New token standards
+10. New token standards
 ======================
 After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
 
@@ -238,8 +261,8 @@ As we analyzed suggested fixes and evaluated them to satisfy the following const
     
     *Figure 16: Comparing suggested solutions*
 
-Proposed solution
-*****************
+Proposal
+********
 After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events logged on the blockchain, it would not be easily traceable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
 
 
