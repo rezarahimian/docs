@@ -418,8 +418,7 @@ Hence, adjusting allowance will violate ERC20 standard and would not be an accep
     *Figure 25: ERC20 transferFrom method constraint*
 
 So, we can conclude:
-
-** The spender MUST not be able to transfer more tokens than allowed by the approver **
+**The spender MUST not be able to transfer more tokens than allowed by the approver**
 
 Based on this impression, we should not consider allowance as the main factor. Transferred tokens are the main variable in calculations. For example:
 
@@ -427,9 +426,9 @@ Based on this impression, we should not consider allowance as the main factor. T
 #. Bob front runs Alice's transaction and transfers 100 tokes (Legit transfer)
 #. Alice's transaction is mined and sets Bob allowance to 80.
 #. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transfered more than 80, his trasanction will fail and prevent multiple withdrawal.
-# Bob'a allowance stays as 80, however, he can not use it
+#. Bob'a allowance stays as 80, however, he can not use it
 
-So, here allowance can be considered as *possible allowance*. It means that if Bob is elligible (has not already transferred tokens), he would be able to transfer up to allowance limit.
+So, here allowance can be considered as **possible allowance**. It means that if Bob would be elligible to transfer up to allowance limit if he has not already transferred anytokens.
 
 Conclusion
 **********
