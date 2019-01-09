@@ -261,8 +261,8 @@ As we analyzed suggested fixes and evaluated them to satisfy the following const
     
     *Figure 16: Comparing suggested solutions*
 
-Proposal
-********
+Proposal 1
+**********
 After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events logged on the blockchain, it would not be easily traceable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
 
 
@@ -392,6 +392,43 @@ In term of compatibly, working with current wallets (Like MetaMask) shows no tra
     :figclass: align-center
     
     *Figure 24: Compatibility of the token with current wallets*
+
+Proposal 2
+**********
+Proposal 1 mitigates the attack in all situations, however it adjusts allowance based on transferred tokens. For example, if Alice allowed Bob for transferring 100 tokens and she deccides to increase it to 120 tokens, the allowance will not set directly to 120 and the code adjusts it:
+
+#. If Bob already transferred 100 tokens, the new allowance will be 20 (100+20 = 120).
+#. If Bob already transferred 70 tokens, the new allowance will be 50 (70+50 = 120).
+#. If Bob has not already transferred any tokens, the new allowance will be 120 (0+120=120).
+
+Although the final result will be the same and does not allow Bob to transfer more than intended tokens, But ERC20 standard approve mehtod emphasizes that:
+
+.. figure:: images/multiple_withdrawal_28.png
+    :scale: 85%
+    :figclass: align-center
+    
+    *Figure 25: ERC20 approve method constraint*
+
+Hence, adjusting allowance will violate ERC20 standard and would not be an acceptable solution. Since this was our last solution for improving ``approve`` method, we would assume API change as feasible suggestion for makeing ``approve`` method safer. It seems that there is no implementation to satisfy the standard constraints and mitigating against the attack under one solution. As an alternative solution, security of ``transferFrom`` method can be improved. ``transferFrom`` SHOULD throw unless allowed:
+
+.. figure:: images/multiple_withdrawal_30.png
+    :scale: 85%
+    :figclass: align-center
+    
+    *Figure 25: ERC20 transferFrom method constraint*
+
+So, we can conclude:
+**The spender MUST not be able to transfer more tokens than allowed by the approver**
+
+Based on this impression, we should not consider allowance as the main factor. Transferred tokens are the main variable in calculations. For example:
+
+#. Alice allowed Bob for transferring 100 tokens and decides to set it to 70 after a while.
+#. Bob front runs Alice's transaction and transfers 100 tokes (Legit transfer)
+#. Alice's transaction is mined and sets Bob allowance to 80.
+#. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transfered more than 80, his trasanction will fail and prevent multiple withdrawal.
+#. Bob'a allowance stays as 80, however, he can not use it
+
+So, here allowance can be considered as **possible allowance**. It means that if Bob would be elligible to transfer up to allowance limit if he has not already transferred anytokens.
 
 Conclusion
 **********
