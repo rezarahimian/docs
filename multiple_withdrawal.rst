@@ -425,7 +425,7 @@ So, the goal is to prevent spender from transferring more tokens than allowed by
 So, here allowance can be considered as **possible allowance** or **potential allowance**. It indicates that Bob is elligible to transfer up to allowance limit if he has not already transferred anytokens. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method:
 
 .. figure:: images/multiple_withdrawal_31.png
-    :scale: 85%
+    :scale: 100%
     :figclass: align-center
     
     *Figure 26: Securing transferFrom method instead of approve method*
@@ -433,7 +433,7 @@ So, here allowance can be considered as **possible allowance** or **potential al
 https://rinkeby.etherscan.io/address/0x55b9871e66976cb4263c13a9c9e250e31a880b8f
 
 .. figure:: images/multiple_withdrawal_32.png
-    :scale: 75%
+    :scale: 80%
     :figclass: align-center
     
     *Figure 27: Proposed ERC20 implementation on Rinkby test network*
