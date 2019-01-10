@@ -145,7 +145,7 @@ In this case, the default ``approve`` function should be called when spender’s
     :scale: 100%
     :figclass: align-center
     
-    *Figure 10: Functionality of approve method with new added code*
+    *Table 1: Functionality of approve method with new added code*
 
 These two functions will address race condition and prevent allowance double-spend exploit:
 
@@ -250,21 +250,20 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 Comparing solutions
 ****************************
-As we analyzed suggested fixes and evaluated them to satisfy the following constraints:
+Analyzing suggested fixes indicate the following constraints to satisfy:
 
-#. **backwards compatibility with contracts deployed before:** requires secure implementation of defined ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be as defined by the standard. ``approve`` method sets new allowance for spender, not adjusting allowance by increasing or decreasing its current allowance (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`)
-#. **Preventing race condition in any situation:**
+#. **Backwards compatibility with contracts deployed before:** requires secure implementation of ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be kept as defined by the ERC20 standard. ``approve`` method sets new allowance for spender, not adjusting it by increasing or decreasing its current value (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`).
+#. **Preventing race condition in any situation:** requires attack prevention in any cases. Using ``Transfer`` event or comparing remaining allowance would be sufficient. Moreover, using the default ``approve`` and ``transferFrom`` methods has to mitigate the attack and not using other complemetary methods.
 
 .. figure:: images/multiple_withdrawal_27.png
     :scale: 90%
     :figclass: align-center
     
-    *Figure 16: Comparing suggested solutions*
+    *Table 2: Comparing suggested solutions*
 
 Proposal 1
 **********
-After evaluating suggested solutions, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender’s allowance from N to zero and then from zero to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events logged on the blockchain, it would not be easily traceable way in case of transferring to a third-party (Alice -> Bob, Bob -> Carole). Only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token compatible with other smart contracts due to internal usage of the variable:
-
+As comparison shows, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard encourages approvers to change spender allowance from N to 0 and then from 0 to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running (race condition). As discussed in MiniMeToken implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events (logged by ``transferFrom``), it would not be easily traceable in case of transferring to a third-party (Alice -> Bob, Bob -> Carole => Alice -> Carole). The only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token code compatible with other smart contracts due to internal usage of the variable:
 
 .. figure:: images/multiple_withdrawal_13.png
     :scale: 100%
@@ -288,7 +287,7 @@ Similarly, a block of code will be added to approve function to compare new allo
     
     *Figure 19: Added code block to approve function to compare and set new allowance value*
 
-Added block code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (Sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
+Added code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
 
 1.	Alice approves Bob for spending 100 tokens and then decides to decrease it to 10 tokens.
 1.1.	Alice approves Bob for transferring 100 tokens.
@@ -313,14 +312,13 @@ Added block code to ``Approve`` function will compare new allowance (``_tokens``
 We can consider the below flowchart demonstrating how does Approve function works. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
 
 .. figure:: images/multiple_withdrawal_16.png
-    :scale: 70%
+    :scale: 90%
     :figclass: align-center
     
     *Figure 20: Flowchart of added code to Approve function*
 
-In order to evaluate functionality of the new ``Approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token.
+In order to evaluate functionality of the new ``approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token:
 
-Standard ERC20 token implementation (TKNv1) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
 
 .. figure:: images/multiple_withdrawal_17.png
@@ -329,7 +327,6 @@ https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
     
     *Figure 21: Standard ERC20 implementation on Rinkby test network*
 
-Proposed ERC20 token implementation (TKNv2) on Rinkby test network:
 https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
 
 .. figure:: images/multiple_withdrawal_18.png
@@ -340,8 +337,8 @@ https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
     
 We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
 
-#. Without considering race condition.
-#. By considering race condition (Highlighted in Yellow in the following tables)
+* Without considering race condition.
+* By considering race condition (Highlighted in Yellow in the following tables)
 
 It would be possible to get different results by tweaking three input parameters:
 
@@ -349,33 +346,33 @@ It would be possible to get different results by tweaking three input parameters
 #. Current amount of allowed tokens to transfer (N)
 #. New allowance for transferring tokens (M)
 
-By changing these parameters, we would be able to evaluate all possible results based on different inputs. These results have been summarized in Tables2, 3, 4. For example, Table2 shows result of all possible input values if approver wants to reduce previously allowed transfers. Table3 evaluates the same result for increasing and even passing the same allowance as before. the last table checks input values in boundaries (New allowance = 0 OR New allowance = Current allowance + Transferred tokens).
+By changing these parameters, we would be able to evaluate all possible results based on different inputs. These results have been summarized in Tables 3, 4, 5. For example, Table2 shows result of all possible input values if approver wants to reduce previously allowed transfers. Table 3 evaluates the same result for increasing and even passing the same allowance as before. the last table checks input values in boundaries (New allowance = 0 OR New allowance = Current allowance + Transferred tokens).
 
 .. figure:: images/multiple_withdrawal_19.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 2: Test results in case on new allowance (M) < current allowance (N)*
+    *Table 3: Test results in case on new allowance (M) < current allowance (N)*
 
 .. figure:: images/multiple_withdrawal_20.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 3: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)*
+    *Table 4: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)*
 
 .. figure:: images/multiple_withdrawal_21.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 4: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)*
+    *Table 5: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)*
 
-In Table1, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M≤ S≤T+N. As we can see this equation is true for all results of Table1 which is showing this attack is not possible in case of reducing allowance. In Table2 and Table3, total transferable tokens MUST be always less than new allowance (S≤M) no matter how many tokens have been already transferred. Result of tests for different input values shows that TKNv2 can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. TokenV2.approve uses almost the same Gas as TokenV1.approve, however, gas consumption of TokenV2.transferFrom is around 50% more than TokenV1.transferFrom. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
+In Table 2, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M≤ S≤T+N. As we can see this equation is true for all results of Table1 which is showing this attack is not possible in case of reducing allowance. In Table 4 and Table 5, total transferable tokens MUST be always less than new allowance (S≤M) no matter how many tokens have been already transferred. Result of tests for different input values shows that *TKNv2* can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. TokenV2.approve uses almost the same Gas as ``TokenV1.approve``, however, gas consumption of ``TokenV2.transferFrom`` is around 50% more than ``TokenV1.transferFrom``. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
 
 .. figure:: images/multiple_withdrawal_22.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 5: comparison of Gas consumption between TKNv1 and TKNv2*
+    *Table 6: comparison of Gas consumption between TKNv1 and TKNv2*
 
 Additionally, Transferring and receiving tokens trigger expected events (Visible under Etherscan): 
 
@@ -395,7 +392,7 @@ In term of compatibly, working with current wallets (Like MetaMask) shows no tra
 
 Proposal 2
 **********
-Proposal 1 mitigates the attack in all situations, however it adjusts allowance based on transferred tokens. For example, if Alice allowed Bob for transferring 100 tokens and she deccides to increase it to 120 tokens, the allowance will not set directly to 120 and the code adjusts it:
+Proposal 1 mitigates the attack in all situations, however it adjusts allowance based on transferred tokens. For example, if Alice allowed Bob for transferring 100 tokens and she deccides to increase it to 120 tokens, the allowance will not directly set to 120 and the code adjusts it as below:
 
 #. If Bob already transferred 100 tokens, the new allowance will be 20 (100+20 = 120).
 #. If Bob already transferred 70 tokens, the new allowance will be 50 (70+50 = 120).
@@ -409,7 +406,7 @@ Although the final result will be the same and does not allow Bob to transfer mo
     
     *Figure 25: ERC20 approve method constraint*
 
-Hence, adjusting allowance will violate ERC20 standard and would not be an acceptable solution. Since this was our last solution for improving ``approve`` method, we would assume API change as feasible suggestion for makeing ``approve`` method safer. It seems that there is no implementation to satisfy the standard constraints and mitigating against the attack under one solution. As an alternative solution, security of ``transferFrom`` method can be improved. ``transferFrom`` SHOULD throw unless allowed:
+Hence, adjusting allowance will violate this constraint of ERC20 standard. Since this was our last solution for improving ``approve`` method, we would assume API change as final suggestion for makeing ``approve`` method safer. It seems that there is no implementation to satisfy the standard constraints and mitigating against the attack under one solution. Hence, security of ``transferFrom`` method could be improved as an alternative solution. ERC20 standard emphasizes that:
 
 .. figure:: images/multiple_withdrawal_30.png
     :scale: 85%
@@ -417,18 +414,30 @@ Hence, adjusting allowance will violate ERC20 standard and would not be an accep
     
     *Figure 25: ERC20 transferFrom method constraint*
 
-So, we can conclude:
-**The spender MUST not be able to transfer more tokens than allowed by the approver**
-
-Based on this impression, we should not consider allowance as the main factor. Transferred tokens are the main variable in calculations. For example:
+So, the goal is to prevent spender from transferring more tokens than allowed by the approve. Based on this impression, we should not consider allowance as the main factor. Transferred tokens should be considered as the main variable in calculations. For example:
 
 #. Alice allowed Bob for transferring 100 tokens and decides to set it to 70 after a while.
 #. Bob front runs Alice's transaction and transfers 100 tokes (Legit transfer)
 #. Alice's transaction is mined and sets Bob allowance to 80.
 #. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transfered more than 80, his trasanction will fail and prevent multiple withdrawal.
-#. Bob'a allowance stays as 80, however, he can not use it
+#. Bob'a allowance stays as 80, however, he can not use it.
 
-So, here allowance can be considered as **possible allowance**. It means that if Bob would be elligible to transfer up to allowance limit if he has not already transferred anytokens.
+So, here allowance can be considered as **possible allowance** or **potential allowance**. It indicates that Bob is elligible to transfer up to allowance limit if he has not already transferred anytokens. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method:
+
+.. figure:: images/multiple_withdrawal_31.png
+    :scale: 85%
+    :figclass: align-center
+    
+    *Figure 26: Securing transferFrom method instead of approve method*
+    
+https://rinkeby.etherscan.io/address/0x55b9871e66976cb4263c13a9c9e250e31a880b8f
+
+.. figure:: images/multiple_withdrawal_32.png
+    :scale: 75%
+    :figclass: align-center
+    
+    *Figure 27: Proposed ERC20 implementation on Rinkby test network*
+
 
 Conclusion
 **********
