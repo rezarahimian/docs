@@ -29,7 +29,7 @@ As explain by :cite:`Ref03`, these two functions could be used in multiple withd
     
     *Figure 3: Raised issue on Github from October 2017
 
-The issue is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack. Here could be a possible attack scenario :cite:`Ref07`:
+This issue is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack. Here could be a possible attack scenario :cite:`Ref07`:
 
 #. Alice allows Bob to transfer N tokens by calling ``approve(_BobAddr, N)``.
 #. After a while, Alice decides to change approval from N to M by executing ``approve(_BobAddr, M)``.
