@@ -24,10 +24,10 @@ Two functions support this feature:
 As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged (which is not sufficient in case of transferring tokens to a third parity). Authors of ERC20 token standard, provided two sample implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as separate thread `here <https://github.com/ethereum/EIPs/issues/738>`_:
 
 .. figure:: images/multiple_withdrawal_25.png
-    :scale: 60%
+    :scale: 70%
     :figclass: align-center
     
-    *Figure 3: Raised issue on Github from October 2017
+    *Figure 2: Raised issue on Github from October 2017 (https://github.com/ethereum/EIPs/issues/738)*
 
 This issue is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack. Here could be a possible attack scenario :cite:`Ref07`:
 
@@ -45,7 +45,7 @@ In fact, Alice attempted to change Bob's allowance from N to M, but she made it 
     :scale: 50%
     :figclass: align-center
     
-    *Figure 2: Possible multiple withdrawal attack in ERC20 tokens*
+    *Figure 3: Possible multiple withdrawal attack in ERC20 tokens*
 
 The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw N tokens after the initial Alice’s approval, this would be considered as a legitimate transfer since Alice has already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). In short, we are looking for a solution to prevent multiple withdrawal (N+M) by Bob assuming that Alice has more than N+M tokens in her wallet.
 
