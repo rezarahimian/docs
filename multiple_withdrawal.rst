@@ -8,7 +8,7 @@ Multiple withdrawal attack
 
 Description
 ***********
-`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines required APIs [#]_ for approving and transferring tokens from an approver. By these methods, tokens can be spent by another third party (e.g., approved spender, online exchanges, third-party payments, or quantitative fund management) on behalf of the owner. Two functions support this feature:
+`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines required APIs [#]_ for approving and transferring tokens from an approver. By these APIs, tokens can be spent by another third party (e.g., approved spender, online exchanges, third-party payments, or quantitative fund managemer) on behalf of the owner. Two functions support this feature:
 
 #. **approve**: It is a function which allows ``_spender`` to withdraw up to the ``_value`` amount of tokens from token pool of the approver. If this function is called again, it overwrites the current allowance with the new ``_value``.
 #. **transferFrom**: It grants required rights to the spender (accounts, wallets or smart contracts) for transfering ``_value`` amount of tokens from address ``_from`` to address ``_to``.
