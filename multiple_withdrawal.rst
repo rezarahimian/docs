@@ -8,28 +8,36 @@ Multiple withdrawal attack
 
 Description
 ***********
-`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines basic functionalities to transfer tokens, as well as allowing tokens to be approved. so they can be spent by another third party (e.g., online exchanges, third-party payments, and quantitative fund management) on behalf of the owner. Two functions support this functionality:
+`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines required APIs [#]_ for approving and transferring tokens from an approver. By these methods, tokens can be spent by another third party (e.g., approved spender, online exchanges, third-party payments, or quantitative fund management) on behalf of the owner. Two functions support this feature:
 
-#. **approve**: Allows ``_spender`` to withdraw up to the ``_value`` amount from approver token pool. If this function is called again it overwrites the current allowance with ``_value``.
-#. **transferFrom**: Transfers ``_value`` amount of tokens from address ``_from`` to address ``_to``. It allows accounts/wallets to transfer tokens on behalf of approver.
+#. **approve**: It is a function which allows ``_spender`` to withdraw up to the ``_value`` amount of tokens from token pool of the approver. If this function is called again, it overwrites the current allowance with the new ``_value``.
+#. **transferFrom**: It grants required rights to the spender (accounts, wallets or smart contracts) for transfering ``_value`` amount of tokens from address ``_from`` to address ``_to``.
 
 .. figure:: images/multiple_withdrawal_01.png
     :scale: 90%
     :figclass: align-center
     
-    *Figure 1: Standard ERC20 approve and transferFrom methods*
+    *Figure 1: approve and transferFrom methods as part of ERC20 API*
+
+As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not trackable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Authors of ERC20 token Standard, provided two sample implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as separate thread `here <https://github.com/ethereum/EIPs/issues/738>`_:
+
+.. figure:: images/multiple_withdrawal_25.png
+    :scale: 60%
+    :figclass: align-center
     
-As explain by :cite:`Ref03`, these two functions could be used in multiple withdrawal attack that allows a spender to transfer more tokens than the owner of tokens ever wanted. This is possible because ``approve`` method overrides current allowance regardless of whether spender already used it or not. Moreover, transferred tokens are not traceable and only ``Transfer`` event will be logged which is not sufficient in case of transferring tokens to a third parity. Here could be a possible attack scenario :cite:`Ref07`:
+    *Figure 3: Raised issue on Github from October 2017
+
+The issue is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack. Here could be a possible attack scenario :cite:`Ref07`:
 
 #. Alice allows Bob to transfer N tokens by calling ``approve(_BobAddr, N)``.
-#. After a while, Alice decides to change approval from N to M by calling ``approve(_BobAddr, M)``.
-#. Bob notices Alice's second transaction before it was mined and quickly sends another transaction that calls ``transferFrom(_AlicAddr, _BobAddr, N)``. This transfers N Alice's tokens to Bob.
-#. Bob's transaction will be executed before Alice's transaction (because of higher transaction fee or miner’s policy) and Bob front-runs Alice's transaction.
+#. After a while, Alice decides to change approval from N to M by executing ``approve(_BobAddr, M)``.
+#. Bob notices Alice's second transaction before it was mined and quickly sends another transaction that runs ``transferFrom(_AlicAddr, _BobAddr, N)``. This will transfer N Alice's tokens to Bob.
+#. Bob's transaction will be executed before Alice's transaction (because of higher transaction fee, miner’s policy or other prioritization ways) and Bob front-runs Alice's transaction.
 #. Alice’s transaction will be executed after Bob’s and allows Bob to transfer more M tokens.
 #. Bob successfully transferred N Alice's tokens and gains ability of transferring another M tokens.
-#. Before Alice noticed that something went wrong, Bob calls ``transferFrom`` method again and transfers M Alice's tokens by calling ``transferFrom(_AlicAddr, _BobAddr, M)``.
+#. Before Alice notices that something went wrong, Bob calls ``transferFrom`` method again and transfers M Alice's tokens by executing ``transferFrom(_AlicAddr, _BobAddr, M)``.
 
-In fact, Alice attempted to change Bob's allowance from N to M, but she made it possible for Bob to transfer ``N+M`` of her tokens at most, while Alice never wanted to allow so many transfers by Bob:
+In fact, Alice attempted to change Bob's allowance from N to M, but she made it possible for Bob to transfer N+M of her tokens at most, while Alice never wanted to allow so many transfers by Bob:
 
 .. figure:: images/multiple_withdrawal_02.png
     :scale: 50%
@@ -37,14 +45,7 @@ In fact, Alice attempted to change Bob's allowance from N to M, but she made it 
     
     *Figure 2: Possible multiple withdrawal attack in ERC20 tokens*
 
-The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw N tokens after the initial Alice’s approval, this would be considered as a legit transfer since Alice has already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). So we are looking for a solution to prevent multiple withdrawal ``(N+M)`` by Bob assuming that Alice has more than ``N+M`` tokens in her wallet.
-Authors of ERC20 token Standard, provided two example implementations from `OpenZeppelin <https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol>`_ and `ConsenSys <https://github.com/ConsenSys/Tokens/blob/fdf687c69d998266a95f15216b1955a4965a0a6d/contracts/eip20/EIP20.sol>`_. *OpenZeppelin* implementation uses two additional methods that initially proposed by `MonolithDAO token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ and *ConsenSys* has not attempted to work around the issue. There are other implementations that have different trade-offs. The issue is initially opened `here <https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729>`_ and raised as separate thread `here <https://github.com/ethereum/EIPs/issues/738>`_. It is still open since October 2017 and several suggestions have been made that needs to be evaluated in term of compatibly with the standard and mitigation against the attack.
-
-.. figure:: images/multiple_withdrawal_25.png
-    :scale: 60%
-    :figclass: align-center
-    
-    *Figure 3: Raised issue on Github from October 2017
+The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple times. If he could withdraw N tokens after the initial Alice’s approval, this would be considered as a legitimate transfer since Alice has already approved it (It is Alice’s responsibility to make sure before approving anything to Bob). In short, we are looking for a solution to prevent multiple withdrawal (N+M) by Bob assuming that Alice has more than N+M tokens in her wallet.
 
 Suggested solutions
 *******************
@@ -448,6 +449,7 @@ Based on ERC20 specifications, token owners should be aware of their approval co
 |
 
 .. rubric:: Footnotes
+.. [#] Advanced Programming Interface (API) defines components of an application in terms of inputs, outputs and operations. It provides a standard interface for other applications to interact with our application.
 .. [#] `JavaScript UI library <https://github.com/ethereum/wiki/wiki/JavaScript-API>`_ for interacting with Ethereum blockchain.
 
 |
