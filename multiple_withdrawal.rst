@@ -51,13 +51,13 @@ The assumption here is to prevent Bob from withdrawing Alice’s tokens multiple
 
 Suggested solutions
 *******************
-Several solutions have been suggested by Ethereum community (mostly from developers on GitHub) to address this attack. There would be some considerations for each solution that needs to be discussed in term of compatibility and security:
+Several solutions have been suggested by Ethereum community (mostly from developers on GitHub) to address this attack. There would be some considerations for each solution that needs to be discussed in term of compatibility with ERC20 standard and attack mitigation. We have examined technical aspects of each solution below: 
 
 .. _ui_enforcement:
 
 1. Enforcement by User Interface (UI)
 =====================================
-ERC20 standard emphasizes that:
+As emphasized by ERC20 standard :cite:`Ref08`:
 
 .. figure:: images/multiple_withdrawal_03.png
     :scale: 80%
@@ -65,25 +65,23 @@ ERC20 standard emphasizes that:
     
     *Figure 4: Recommendation of ERC20 standard to mitigate multiple withdrawal attack*
 
-So, they recommend to set allowance to ``zero`` before any ``non-zero`` values and enforce approval processing check in UI level instead of solidity level. If Alice does not use UI and connects directly to the blockchain, there would be good chance of impacting by this attack. Furthermore, as discussed `here <https://github.com/OpenZeppelin/openzeppelin-solidity/issues/438#issuecomment-329172399>`_, this approach is not sufficient and still allows Bob to transfer ``N+M`` tokens:
+The standard recommends to set allowance to zero before any non-zero values and enforce approval processing check in UI instead of smart contract. But if Alice does not use UI and connects directly to the blockchain, there would be a good chance of impacting by this attack. Furthermore, as discussed `here <https://github.com/OpenZeppelin/openzeppelin-solidity/issues/438#issuecomment-329172399>`_, this approach is not sufficient and still allows Bob to transfer N+M tokens:
 
 #. Bob is allowed to transfer N Alice's tokens.
 #. Alice publishes transaction that changes Bob's allowance to 0.
-#. Bob front runs Alice's transaction and transfers N Alice's tokens. Bob’s allowance = 0.
-#. Alice's transaction is mined and Bob's allowance is now 0. This is exactly what she would see if Bob would not transfer any tokens, so she has no reason to think that Bob actually used his allowance before it was revoked.
-#. Now Alice publishes transaction that changes Bob's allowance to M.
-#. Alice's second transaction is mined, so now Bob is allowed to transfer M Alice's tokens
-#. Bob transfers M Alice's tokens and in total ``N+M``.
+#. Bob front runs Alice's transaction and transfers N Alice's tokens (``transferFrom`` sets Bob’s allowance to 0).
+#. Alice's transaction is mined and Bob's allowance is set to 0 by ``approve`` method. This is exactly what she would see if Bob would not transfer any tokens, so she has no reason to think that Bob actually used his allowance before it was revoked.
+#. Now Alice publishes a new transaction that changes Bob's allowance to M.
+#. Alice's second transaction is mined, Bob now is allowed to transfer M Alice's tokens.
+#. Bob transfers M Alice's tokens and in total N+M.
 
-At step 3, Bob is able to transfer N tokens and consequently his allowance becomes 0 (because of ``allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_tokens)``). This is a legit transaction since Alice has already approved it. The issue will happen after Alice’s new transaction (``approve(_BobAddr, 0)``) to set Bob’s approval to 0. In case of front-running by Bob, Alice needs to check Bob’s allowance for the **second time** before setting any new value. However, she will find out Bob's allowance 0 in either case. In other words, she can not distinguish whether Bob's allowance is set to 0 because of her ``approve(_BobAddr, 0)`` transaction or Bob's ``transferFrom(_AliceAddr, _BobAddr, _tokens)`` transaction.
-
-Alice may notice this by checking ``Transfer`` event logged by ``transferFrom`` function. However, if Bob had transferred tokens to someone else (``transferFrom(_AliceAddr, _CarolAddr, _tokens)``), then ``Transfer`` event will not be linked to Bob, and, if Alice's account is busy and many people are allowed to transfer from it, Alice may not be able to distinguish this transfer from a legit one performed by someone else.
-
-So, this solution does not prevent the attack while tries to follow ERC20 recommendations for setting Bob’s allowance to zero before any non-zero value. Hence, enforcement should be considered at contract level not UI level (Interestingly, *OpenZeppelin* example implements a workaround in contract level that makes it inconsistent with text of ERC20). Additionally, There is no way to see from UI if ``approve(_BobAddr, 0)`` transaction is processed before the subsequent non-zero approval :cite:`Ref03`. This is because of current API in Web3.js [#]_ that does not support such checking :cite:`Ref04`. So, we would not see this enforcement as a feasible solution and consider the contract enforce it.
+At step 3, Bob is able to transfer N tokens and consequently his allowance becomes 0 (because of ``allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_tokens)``). This is a legitimate transaction since Alice has already approved it. The issue occurs after Alice’s new transaction (``approve(_BobAddr, 0)``). In case of front-running by Bob, Alice needs to check Bob’s allowance for the **second time** before setting any new value. However, she will find out Bob's allowance 0 in either case. In other words, she can not distinguish whether Bob's allowance is set to 0 because of her transaction (``approve(_BobAddr, 0)``) or Bob's one (``transferFrom(_AliceAddr, _BobAddr, _tokens)``).
+Someone may point out that Alice notices this by checking ``Transfer`` event logged by ``transferFrom`` function. However, if Bob had transferred tokens to someone else (``transferFrom(_AliceAddr, _CarolAddr, _tokens)``), then ``Transfer`` event will not be linked to Bob, and, if Alice's account is busy and many people are allowed to transfer from it, Alice may not be able to distinguish this transfer from a legitimate one performed by someone else.
+Overall, this solution does not prevent the attack while tries to follow ERC20 recommendations for setting Bob’s allowance to zero before any non-zero value. Hence, enforcement should be considered at contract level not UI level (Interestingly, *OpenZeppelin* example implements a workaround in contract level that makes it inconsistent with the text of ERC20). Additionally, There is no way to see from UI if ``approve(_BobAddr, 0)`` transaction is processed before the subsequent non-zero approval :cite:`Ref03`. This is because of current API in Web3.js [#]_ that does not support such checking :cite:`Ref04`.
 
 2. Using minimum viable token
 =============================
-As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic functionalities by implementing only essential methods. In other words, skipping implementation of vulnerable functions will prevent effecting of the attack:
+As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic functionalities by implementing only essential methods. this will prevent effecting of the attack by skipping implementation of vulnerable functions:
 
 .. figure:: images/multiple_withdrawal_04.png
     :scale: 85%
@@ -91,11 +89,11 @@ As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic f
     
     *Figure 5: Minimum viable ERC20 token implementation*
 
-While removing ``approve`` and ``transferFrom`` functions will prevent multiple withdrawal attack, it makes this token incompatible with properties of ERC20 standards. According to ERC20 specifications, these methods are not OPTIONAL and must be implemented. Moreover, ignoring them will cause failed function calls by standard wallets that expect to call them. So, we would not consider this solution as a compatible fix although mitigates the vulnerability.
+While removing ``approve`` and ``transferFrom`` functions prevent multiple withdrawal attack, it makes this token incompatible with ERC20 standards. According to ERC20 specifications, these methods are not OPTIONAL and must be implemented. Moreover, ignoring them will cause failed function calls by standard wallets that expect to interact with them. So, we would not consider this solution as a compatible fix although mitigates the attack.
 
-3. Approving token transfer to verified smart contracts or trusted third-party
+3. Approving token transfer to verified smart contract or trusted third-party
 ==============================================================================
-Approving token transfer to non-upgradable smart contracts would be safe. Because they do not contain any logic to take advantage of this vulnerability. For example, the below contract uses ``transferFrom`` function to transfer approved amount of tokens to someone who agreed to pay equivalent in Ether. So, it will be safe to allow token transfer by this smart contract:
+Approving token transfer to non-upgradable smart contracts can be considered safe. Because they do not contain any logic to take advantage of this vulnerability. For example, the below smart contract uses ``transferFrom`` function to transfer approved amount of tokens to someone who agreed to pay equivalent in Ether. So, it will be safe to allow token transfer by this smart contract:
 
 .. figure:: images/multiple_withdrawal_05.png
     :scale: 100%
@@ -107,7 +105,7 @@ However, upgradable smart contracts may add new logic to a new version that need
 
 4. MiniMeToken implementation
 =============================
-`MiniMeToken <https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol#L225>`_ reduces allowance to ``zero`` before ``non-zero`` approval (As recommended by ERC20 specification). As shown in the screenshot, the red clause in ``approve`` method, allows to set approval to 0 and blue condition checks allowance of ``_spender`` to be 0 before setting to other values (i.e., If ``_spender`` allowance is 0 then allows ``non-zero`` values):
+`MiniMeToken <https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol#L225>`_ also follows ERC20 recommendation by reducing allowance to zero before non-zero values. They added a line of code to the ``approve`` method. The red clause allows setting approval to 0 and blue condition checks allowance of ``_spender`` to be 0 before setting to other values (i.e., If ``_spender`` allowance is 0 then allows ``non-zero`` values):
 
 .. figure:: images/multiple_withdrawal_06.png
     :scale: 100%
@@ -115,20 +113,20 @@ However, upgradable smart contracts may add new logic to a new version that need
     
     *Figure 7: MiniMeToken suggestion for adding new codes to approve method*
 
-Similar to :ref:`ui_enforcement`, this will not prevent Bob from transferring ``N+M`` tokens. Because Alice would not be able to distinguish whether N tokens have been already transferred or not. It will be more clear by considering the following situation:
+Similar to :ref:`ui_enforcement`, this will not prevent Bob from transferring N+M tokens. Because Alice would not be able to distinguish whether N tokens have been already transferred or not. It is more clear in this scenario:
 
-#. Alice decides to set Bob's allowance from 0 (``approve(_BobAddr,0)``).
-#. Bob front-runs Alice's transaction and his allowance sets to 0 after transferring N tokens (``allowed[_AliceAddr][_BobAddr] = allowed[_AliceAddr][_BobAddr].sub(N)``)
-#. Alice's transaction execute and sets Bob's allowance to 0 (Red clause passes sanity check)
+#. Alice decides to set Bob's allowance to 0 (``approve(_BobAddr,0)``).
+#. Bob front-runs Alice's transaction and his allowance sets to 0 after transferring N tokens (``allowed[_AliceAddr][_BobAddr] = allowed[_AliceAddr][_BobAddr].sub(N)``).
+#. Alice's transaction execute and sets Bob's allowance to 0 (Red clause passes sanity check).
 #. Alice checks Bob's allowance and she will find it zero, so, she can not determine whether this was because of her transaction or Bob already transferred N tokens.
-#. By considering that Bob has not been transferred any tokens, Alice allows Bob for transferring new M tokens .
-#. Bob would be able to take advantage of the gap between two transactions and transfer both previous and new approved tokens.
+#. By considering that Bob has not been transferred any tokens, Alice allows Bob for transferring new M tokens.
+#. Bob would be able to transfer new approved tokens.
 
 .. _monolithDAO_Token:
 
 5. MonolithDAO Token
 ====================
-`MonolithDAO Token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ suggests to add two additional functions and use them when increase or decrease allowed tokens to a spender. ``approve`` function will also have an additional line of code to set allowance to ``zero`` before ``non-zero`` values:
+`MonolithDAO Token <https://github.com/MonolithDAO/token/blob/master/src/Token.sol>`_ suggests two additional functions for increasing or decreasing allowance. ``approve`` function will also have an additional code to set allowance to zero before non-zero values:
 
 .. figure:: images/multiple_withdrawal_07.png
     :scale: 100%
@@ -142,7 +140,7 @@ Similar to :ref:`ui_enforcement`, this will not prevent Bob from transferring ``
     
     *Figure 9: New methods to increase/decrease the amount of approved tokens*
 
-In this case, the default ``approve`` function should be called when spender’s allowance is ``zero`` (No approval has been made). If spender’s allowance is ``non-zero``, Increase and decrease functions must be used:
+In this case, the default ``approve`` function should be called when spender’s allowance is zero (No approval has been made). If spender’s allowance is non-zero, Increase and decrease functions will be used:
 
 .. figure:: images/multiple_withdrawal_09.png
     :scale: 100%
@@ -150,21 +148,21 @@ In this case, the default ``approve`` function should be called when spender’s
     
     *Table 1: Functionality of approve method with new added code*
 
-These two functions will address race condition and prevent allowance double-spend exploit:
+These two functions can address race condition and prevent allowance double-spend exploit:
 
 #. Alice allows Bob to transfer N tokens by calling ``approve(_BobAddr, N)``. This will be executed by ``approve`` function since current Bob’s allowance is 0.
-#. After a while, Alice decides to decrease Bob’s approval by M and calls ``decreaseApproval(_BobAddr, M)``.
-#. Bob notices Alice's second transaction and front runs it by calling ``transferFrom(_AlicAddr, _BobAddr, N)``.
-#. Bob’s transaction will be executed and transfers N token to his account and the allowance becomes 0 as result of this transfer.
-#. Alice’s transaction is mined after Bob’s and tries to decrease Bob’s allowance by M. If Bob had already transferred more than M tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remained allowance and he would be able to transfer the rest (which is legit transfer since Alice has already approved it). If Bob had transferred less than M tokens, the new allowance will be applied and reduces Bob's allowance by M.
+#. After a while, Alice decides to decrease Bob’s approval by M by running ``decreaseApproval(_BobAddr, M)``.
+#. Bob notices Alice's second transaction and front runs it by executing ``transferFrom(_AlicAddr, _BobAddr, N)``.
+#. Bob’s transaction will be executed first and transfers N token to his account and the his allowance becomes 0 as result of this transfer.
+#. Alice’s transaction is mined after Bob’s transaction and tries to decrease Bob’s allowance by M. If Bob had already transferred more than M tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remaining allowance and he would be able to transfer the rest (which is legitimate transfer since Alice has already approved it). If Bob had transferred less than M tokens, the new allowance will be applied and reduces Bob's allowance by M.
 
-Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by smart contracts that are already deployed on the Ethereum network. Because they will still use ``approve`` method for setting new allowance and not ``increaseApproval`` or ``decreaseApproval``. Moreover, ERC20 specifications does not define any increase or decrease of allowance. It only defines new allowance. For example, if Alice has approved Bob for ``100`` tokens and wants to set it to ``80``, the new allowance should be ``80`` as defined by the standard, while using decrease methods will set it ``20 (100 - 80 = 20)``. Comparatively, increase method will set new allowance as ``180``. For these reasons, this solution would not be a compatible solution with ERC20 standard and only is usable if approver or smart contract being aware of these supplementary methods (and logic of them).
+Although these two new functions will prevent the attack, they have not been defined in the initial specifications of ERC20. So, they can not be used by smart contracts that are already deployed on the Ethereum network. Because they will still use ``approve`` method for setting new allowance and not ``increaseApproval`` or ``decreaseApproval``. Moreover, ERC20 specifications does not define any increase or decrease of allowance. It only defines new allowance. For example, if Alice has approved Bob for ``100`` tokens and wants to set it to ``80``, the new allowance should be ``80`` while using decrease methods will set it ``20 (100 - 80 = 20)``. Comparatively, increase method will set new allowance to ``180`` while it has to set to ``80`` again. For these reasons, this solution would not be compatible with ERC20 standard and only is usable if approver or smart contract are aware of these supplementary methods.
 
 .. _alternate_approval_function:
 
 6. Alternate approval function
 ==============================
-`Another suggestion <https://github.com/kindads/erc20-token/blob/40d796627a2edd6387bdeb9df71a8209367a7ee9/contracts/zeppelin-solidity/contracts/token/StandardToken.sol>`_ is to move security checks to another function like ``safeApprove`` that change allowance if it has not been already changed:
+`Another suggestion <https://github.com/kindads/erc20-token/blob/40d796627a2edd6387bdeb9df71a8209367a7ee9/contracts/zeppelin-solidity/contracts/token/StandardToken.sol>`_ is to move security checks to another function like ``safeApprove`` that sets allowance if it has not been already changed:
 
 .. figure:: images/multiple_withdrawal_10.png
     :scale: 100%
@@ -172,11 +170,11 @@ Although these two new functions will prevent the attack, they have not been def
     
     *Figure 11: safeApprove proposal as alternative to ERC20 standard approve function*
 
-By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to 0 and for new approvals, she has to use ``safeApprove`` to set Bob’s allowance to other values. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, we have to read current allowance and pass it to a new ``safeApprove`` method. As mentioned in the last section, this approach is not backward compatible with already implemented smart contracts because of new ``safeApprove`` method that is not defined in ERC20 standard and existing code wouldn't be able to use this safety feature.
+By using this function, Alice uses the standard ``approve`` function to set Bob’s allowance to 0 and for new approvals, she has to use ``safeApprove``. It takes the current expected approval amount as input parameter and calls ``approve`` method if previous allowance is equal to current expected approval. So, Alice will have one step more and it is reading the current allowance and passing it to the new ``safeApprove`` method. As mentioned in the last section, this approach is not backward compatible with already implemented smart contracts. The new ``safeApprove`` method that is not defined in ERC20 standard and existing code would not be able to use this safety feature.
 
 7. Detecting token transfers
 ============================
-In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used to detect whether any tokens have been transferred or not. ``transferFrom`` method sets a flag to ``true`` if tokens are transferred. ``approve`` method checks the flag to be ``false`` before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
+In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6cca6>`_ a boolean variable is used to detect whether any tokens have been transferred or not. ``transferFrom`` method sets a flag to true if tokens are transferred. ``approve`` method checks the flag to be false before allowing new approvals (i.e., it checks if tokens have been used/transferred since the owner last allowance set). Moreover, it uses a new data structure (line 6) for keeping track of used/transferred tokens:
 
 .. figure:: images/multiple_withdrawal_26.png
     :scale: 90%
@@ -187,16 +185,16 @@ In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6
 This approach could prevent race condition as described below:
 
 #. Alice runs ``approve(_BobAddr, N)`` to allow Bob for transferring N tokens.
-#. Since Bob's initial allowance is 0 and ``used`` flag is ``false``, then sanity check passes and Bob's allowance is set to N.
+#. Since Bob's initial allowance is 0 and ``used`` flag is false, then sanity check passes and Bob's allowance is set to N.
 #. Alice decides to set Bob's allowance to 0 by executing ``approve(_Bob, 0)``.
-#. Bob front-runs Alice's transaction and transfers N tokens. His ``used`` flage turns to ``true`` (line 31).
+#. Bob front-runs Alice's transaction and transfers N tokens. Then, his ``used`` flage turns to true (line 31).
 #. Alice's transaction is mined and passes sanity check in line 15 (because ``_value == 0``).
 #. Bob's allowance is set to 0 (line 16) while ``used`` flag is still ``true``.
 #. Alice changes Bob's allowance to M by executing ``approve(_BobAddr, M)``
 #. Since Bob already transferred number of tokens, ``used`` flag is ``true`` and it fails the transaction.
 #. Bob's allowance remains as N and he could transfer only N tokens.
 
-Although this approach mitigates the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from N to M (two non-zero values). If Bob already had transferred number of tokens (even 1 token), Alice would not be able to increase his approval (or set any new approval values). Because ``used`` flag is turned to ``true`` in line 31 and does not allow changing allowance to any non-zero values in line 15. Even setting the allowance to 0, does not flip ``used`` flag and keeps Bob's allowance locked down. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to 0, ``used`` flag becomes ``false`` and allows non-zero values event if tokens have been already transferred. In other words, it resembles the initial values of allowance similar when nothing is transferred. Therefore, it will disable attack mitigation functionality of the code. In short, this approach can not satisfy both legit and non-legit scenarios and violets ERC20 standard that says:
+Although this approach mitigates the attack, it prevents any further legitimate approvals as well. Considering a scenario that Alice rightfully wants to increase Bob's allowance from N to M (two non-zero values). If Bob had already transferred number of tokens (even 1 token), Alice would not be able to change his approval. Because ``used`` flag is true now (in line 31) and does not allow changing allowance to any non-zero values in line 15. Even setting the allowance to 0, does not flip ``used`` flag and keeps Bob's allowance locked down. In fact, the code needs a line like ``allowed[_from][msg.sender].used = false;`` between lines 16 and 17. But it will cause another problem. After setting allowance to 0, ``used`` flag becomes ``false`` and allows non-zero values event if tokens have been already transferred. In other words, it resembles the initial values of allowance similar when nothing is transferred. Therefore, it makes attack mitigation functionality ineffective. In short, this approach can not satisfy both legitimate and non-legitimate scenarios and violets ERC20 standard that says:
 
 .. figure:: images/multiple_withdrawal_28.png
     :scale: 85%
@@ -208,7 +206,7 @@ Nevertheless, it is a step forward by introducing the need for a new variable to
 
 8. Keeping track of remaining tokens
 ====================================
-Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous solution and keeping track of remaining tokens instead of detecting token transfers. It uses modifed version of data structure that used in the previous solution for storing ``residual`` tokens:
+This `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-373935913>`_ is inspired by the previous one and keeping track of remaining tokens instead of detecting transferred tokens. It uses modifed version of data structure that used in the previous solution for storing ``residual`` tokens:
 
 .. figure:: images/multiple_withdrawal_29.png
     :scale: 100%
@@ -216,22 +214,21 @@ Another `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-3739
     
     *Figure 14: Keeping track of remaining tokens*
 
-At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resemble the situation that we explained in :ref:`ui_enforcement`:
+At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resembles the situation that we explained in :ref:`ui_enforcement`:
 
 #. Bob's allowance is initially zero (``allowances[_AliceAddr][_BobAddr].initial=0``, ``allowances[msg.sender][spender].residual=0``).
 #. Alice allows Bob to transfer N tokens (``allowances[_AliceAddr][_BobAddr].initial=N``, ``allowances[_AliceAddr][_BobAddr].residual=N``).
 #. Alice decides to change Bob's allowance to M and has to set it to zero before any non-zero values.
-#. Bob noticed Alice's transaction for setting his allowance to zero and  transferred N tokens in advance. ``transferFrom`` sets his allowance (residual) to zero consequently (``allowances[_AliceAddr][_BobAddr].residual=0``).
-#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0`` (Similar to step 1).
-#. This is like that no token has been transferred. So, Alice would not be able to distinguish whether any token have been transferred or not.
+#. Bob noticed Alice's transaction for setting his allowance to zero and transfers N tokens in advance. ``transferFrom`` sets his allowance (residual) to zero consequently (``allowances[_AliceAddr][_BobAddr].residual=0``).
+#. Alice's transaction is mined and sets ``allowances[_AliceAddr][_BobAddr].initial=0`` and ``allowances[msg.sender][spender].residual=0`` (Similar to step 1). This is like that no token has been transferred. So, Alice would not be able to distinguish whether any token have been transferred or not.
 #. Alice approves Bob for spending new M tokens.
 #. Bob is able to transfer new M tokes in addition to initial N tokens.
 
-Someone may think of using ``Transfer`` event to detect transferred tokens or checking approver's balance to see any transferred tokens. As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third party. Checking approver's balance also would not be an accurate way if the contract is busy and there are lot of transfers. So, it would be difficult for the approver to detect legit from non-legit transferred tokens.
+Someone may think of using ``Transfer`` event to detect transferred tokens or checking approver's balance to see any transferred tokens. As explained in :ref:`ui_enforcement`, using ``Transfer`` event is not sufficient in case of transferring tokens to a third party. Checking approver's balance also would not be an accurate way if the contract is busy and there are lot of transfers. So, it would be difficult for the approver to detect legitimate from non-legitimate tokens transfers.
 
 9. Changing ERC20 API
 =====================
-:cite:`Ref03` suggested to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
+:cite:`Ref03` advised to change ERC20 ``approve`` method to compare current allowance of spender and sets it to new value if it has not already been transferred. This allows atomic compare and set of spender’s allowance to make the attack impossible. So, it will need new overloaded approve method with three parameters:
 
 .. figure:: images/multiple_withdrawal_12.png
     :scale: 100%
@@ -243,7 +240,7 @@ In order to use this new method, smart contracts have to update their codes to p
 
 10. New token standards
 ======================
-After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expand features and improved security properties of new standards, we would not consider them as target solutions.
+After recognition of this security vulnerability, new standards like `ERC233 <https://github.com/Dexaran/ERC223-token-standard>`_ and `ERC721 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md>`_ were introduced to address the issue in addition to improving current functionality of ERC20 standard. They changed approval model and fixed some drawbacks which need to be addressed in ERC20 as well (i.e., handle incoming transactions through a receiver contract, lost of funds in case of calling transfer instead of transferFrom, etc). Nevertheless, migration from ERC20 to ERC223/ERC721 would not be convenient and all deployed tokens needs to be redeployed. This also means update of any trading platform listing ERC20 tokens. The goal here is to find a backward compatible solution instead of changing current ERC20 standard or migrating tokens to new standards. Despite expanded features and improved security properties of new standards, we would not consider them as target solutions.
 
 .. figure:: images/multiple_withdrawal_11.png
     :scale: 100%
@@ -263,6 +260,16 @@ Analyzing suggested fixes indicate the following constraints to satisfy:
     :figclass: align-center
     
     *Table 2: Comparing suggested solutions*
+    
+Overall, new proposals have to satisfy these considtions:
+
+#. Calling ``approve`` function overwrites the current allowance with new value.
+#. ``approve`` method does not adjust allowance, it sets new value for allowance.
+#. Transferring 0 values by ``transferFrom`` method MUST be treated as normal transfers and fire the Transfer event.
+#. New methods violates ERC20 specifications and makes token to be incompatible with already deployed smart contracts.
+#. Spender will be allowed to withdraw from approver account multiple times, up to the allowed amount.
+#. Transfering initial allowed tokens is considered as legitimate transfer.
+#. Race considtion MUST not happen to prevent the attack.
 
 Proposal 1
 **********
