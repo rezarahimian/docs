@@ -1,8 +1,3 @@
-.. # define a hard line break for HTML
-.. |newline| raw:: html
-
-   <br />
-   
 .. _index:
 
 ##############

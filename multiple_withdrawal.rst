@@ -301,7 +301,7 @@ Similarly, a block of code will be added to approve function to compare new allo
 Added code to ``Approve`` function will compare new allowance (``_tokens``) with current allowance of the spender (``allowed[msg.sender][_spender]``) and with already transferred token (``transferred[msg.sender][_spender]``). Then it decides to increase or decrease current allowance. If new allowance is less than initial allowance (sum of allowance and transferred), it denotes decreasing allowance, otherwise increasing allowance was intended. For example, we consider two below scenarios:
 
 | 
-| *1.	Alice approves Bob for spending 100 tokens and then decides to decrease it to 10 tokens.*
+| **1. Alice approves Bob for spending 100 tokens and then decides to decrease it to 10 tokens.**
 | 1.1.	Alice approves Bob for transferring 100 tokens.
 | 1.2.	After a while, Alice decides to reduce Bob’s allowance from 100 to 10 tokens.
 | 1.3.	Bob noticed Alice’s new transaction and transfers 100 tokens by front-running.
@@ -311,18 +311,18 @@ Added code to ``Approve`` function will compare new allowance (``_tokens``) with
 | 1.7.	Since Bob already transferred more tokens, his allowance will set to 0.
 | 1.8.	Bob is not able to move more than initial approved tokens.
 | 
-| *2. Alice approves Bob for spending 100 tokens and then decides to increase to 120 tokens.*
+| **2. Alice approves Bob for spending 100 tokens and then decides to increase it to 120 tokens.**
 | 2.1.	Alice approves Bob for transferring 100 tokens.
 | 2.2.	After a while, Alice decides to increase Bob’s allowance from 100 to 120 tokens.
 | 2.3.	Bob noticed Alice’s new transaction and transfers 100 tokens by front-running.
-| 2.4.	Bob’s allowance is 0 and transferred is 100.
+| 2.4.	Bob’s allowance is 0 and ``transferred`` is 100.
 | 2.5.	Alice’s transaction is mined and checks initial allowance (100) with new allowance (120).
 | 2.6.	As it is increasing, new allowance (120) will be subtracted from transferred tokens (100).
 | 2.7.	20 tokens will be added to Bob’s allowance.
 | 2.8.	Bob would be able to transfer more 20 tokens (120 in total as Alice wanted).
 |
 
-We can consider the below flowchart demonstrating how does Approve function works. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
+We can consider the below flowchart demonstrating logic of ``approve`` function. By using this flowchart, all possible outputs could be generated based on tweaked inputs:
 
 .. figure:: images/multiple_withdrawal_16.png
     :scale: 90%
@@ -330,7 +330,7 @@ We can consider the below flowchart demonstrating how does Approve function work
     
     *Figure 20: Flowchart of added code to Approve function*
 
-In order to evaluate functionality of the new ``approve/transferFrom`` functions, we have implemented a standard ERC20 token along side our proposed ERC20 token:
+In order to evaluate functionality of the new ``approve/transferFrom`` functions, we have implemented a standard ERC20 token (TKNv1) along side proposed ERC20 token (TKNv2):
 
 https://rinkeby.etherscan.io/address/0x8825bac68a3f6939c296a40fc8078d18c2f66ac7
 
@@ -348,38 +348,38 @@ https://rinkeby.etherscan.io/address/0xf2b34125223ee54dff48f71567d4b2a4a0c9858b
     
     *Figure 22: Proposed ERC20 implementation on Rinkby test network*
     
-We have named these tokens as TKNv1 and TKNv2 representing standard and proposed ERC20 tokens. Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios needs to be tested against it. We tested TKNv2 token with different inputs in two situations:
+Code of each token has been added to the corresponding smart contract and verified by Etherscan. In order to make sure that this new implementation solves multiple withdrawal attack, several scenarios need to be tested against it. We tested TKNv2 token with different inputs in two situations:
 
 * Without considering race condition.
-* By considering race condition (Highlighted in Yellow in the following tables)
+* By considering race condition (Highlighted in Yellow in the each tables)
 
-It would be possible to get different results by tweaking three input parameters:
+By tweaking three input parameters (T, N and M), all possible results would be generated:
 
 #. Number of already transferred tokens (T)
 #. Current amount of allowed tokens to transfer (N)
 #. New allowance for transferring tokens (M)
 
-By changing these parameters, we would be able to evaluate all possible results based on different inputs. These results have been summarized in Tables 3, 4, 5. For example, Table2 shows result of all possible input values if approver wants to reduce previously allowed transfers. Table 3 evaluates the same result for increasing and even passing the same allowance as before. the last table checks input values in boundaries (New allowance = 0 OR New allowance = Current allowance + Transferred tokens).
+We evaluated all possible results based by changing these input parameters. Corresponding results have been summarized in Tables 3, 4, 5. For example, Table 2 shows result of all possible input values if approver wants to reduce allowance. Table 3 evaluates the same result for increasing and even passing the same allowance as before. the last table checks input values in boundaries (New allowance = 0 OR New allowance = Current allowance + Transferred tokens).
 
 .. figure:: images/multiple_withdrawal_19.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 3: Test results in case on new allowance (M) < current allowance (N)*
+    *Table 3: Test results if new allowance (M) < residual allowance (N)*
 
 .. figure:: images/multiple_withdrawal_20.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 4: Test results in case on new allowance (M) > current allowance (N) OR new allowance (M) = current allowance (N)*
+    *Table 4: Test results if new allowance (M) > residual allowance (N) OR new allowance (M) = residual allowance (N)*
 
 .. figure:: images/multiple_withdrawal_21.png
     :scale: 100%
     :figclass: align-center
     
-    *Table 5: Test results in case on new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)*
+    *Table 5: Test results if new allowance (M) = 0 OR new allowance (M) = Transferred tokens (T) + current allowance (N)*
 
-In Table 2, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M≤ S≤T+N. As we can see this equation is true for all results of Table1 which is showing this attack is not possible in case of reducing allowance. In Table 4 and Table 5, total transferable tokens MUST be always less than new allowance (S≤M) no matter how many tokens have been already transferred. Result of tests for different input values shows that *TKNv2* can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. TokenV2.approve uses almost the same Gas as ``TokenV1.approve``, however, gas consumption of ``TokenV2.transferFrom`` is around 50% more than ``TokenV1.transferFrom``. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
+In Table 3, the goal is to prevent spender from transferring more tokens than already transferred. Because approver is reducing allowance, so the result (Total transferable = S) MUST be always in range of M ≤ S ≤ T+N. As we can see this equation is true for all results which is showing this attack is not possible in case of reducing allowance. In Table 4 and Table 5, total transferable tokens MUST be always less than new allowance (S ≤ M) no matter how many tokens have been already transferred. Result of tests for different input values shows that *TKNv2* can address multiple withdrawal attack by making front-running gain ineffective. Moreover, we compared these two tokens in term of Gas consumption. ``TokenV2.approve`` uses almost the same amount of Gas as ``TokenV1.approve``, however, gas consumption of ``TokenV2.transferFrom`` is around 50% more than ``TokenV1.transferFrom``. This difference is because of maintaining a new mapping variable for tracking transferred tokens:
 
 .. figure:: images/multiple_withdrawal_22.png
     :scale: 100%
@@ -387,7 +387,7 @@ In Table 2, the goal is to prevent spender from transferring more tokens than al
     
     *Table 6: comparison of Gas consumption between TKNv1 and TKNv2*
 
-Additionally, Transferring and receiving tokens trigger expected events (Visible under Etherscan): 
+Additionally, Transferring and receiving tokens trigger expected events (visible under Etherscan): 
 
 .. figure:: images/multiple_withdrawal_23.png
     :scale: 100%
@@ -395,23 +395,23 @@ Additionally, Transferring and receiving tokens trigger expected events (Visible
     
     *Figure 23: Logged event by TKNv2 after calling Approve or transferFrom*
 
-In term of compatibly, working with current wallets (Like MetaMask) shows no transfer issue:
+In term of compatibly, working with MetaMask wallets have not raised any transfer issue. This shows compatibility of the token with existing wallets:
 
 .. figure:: images/multiple_withdrawal_24.png
     :scale: 70%
     :figclass: align-center
     
-    *Figure 24: Compatibility of the token with current wallets*
+    *Figure 24: Compatibility of the token with existing wallets*
 
 Proposal 2
 **********
-Proposal 1 mitigates the attack in all situations, however it adjusts allowance based on transferred tokens. For example, if Alice allowed Bob for transferring 100 tokens and she deccides to increase it to 120 tokens, the allowance will not directly set to 120 and the code adjusts it as below:
+Proposal 1 mitigates the attack in all situations, however it adjusts allowance based on transferred tokens. For example, if Alice allowed Bob for transferring 100 tokens and she decides to increase it to 120 tokens, the allowance will not directly set to 120 and the code adjusts it as below:
 
 #. If Bob already transferred 100 tokens, the new allowance will be 20 (100+20 = 120).
 #. If Bob already transferred 70 tokens, the new allowance will be 50 (70+50 = 120).
 #. If Bob has not already transferred any tokens, the new allowance will be 120 (0+120=120).
 
-Although the final result will be the same and does not allow Bob to transfer more than intended tokens, But ERC20 standard approve mehtod emphasizes that:
+Although the final result will be the same and does not allow Bob to transfer more than intended tokens, But ERC20 standard approve method emphasizes that:
 
 .. figure:: images/multiple_withdrawal_28.png
     :scale: 85%
@@ -419,7 +419,14 @@ Although the final result will be the same and does not allow Bob to transfer mo
     
     *Figure 25: ERC20 approve method constraint*
 
-Hence, adjusting allowance will violate this constraint of ERC20 standard. Since this was our last solution for improving ``approve`` method, we would assume API change as final suggestion for makeing ``approve`` method safer. It seems that there is no implementation to satisfy the standard constraints and mitigating against the attack under one solution. Hence, security of ``transferFrom`` method could be improved as an alternative solution. ERC20 standard emphasizes that:
+Hence, adjusting allowance will violate this constraint. On the other hand, this was the only solution for improving ``approve`` method. Because setting allowance securely to new values would need knowledge of transferred tokens. We can get this knowledge by:
+
+#. Tracking what have been transferred and ADJUST allowance accordingly.
+#. Passing a new input parameter that is showing what was the allowance before.
+
+We implemented the first approach and the second one would need to modify definition of ``approve`` method. It seems that there is no feasible implementation to satisfy constraints of ERC20 and mitigating the attack under one solution. Therefore, we would assume API change as final solution of securing ``approve`` method.
+ 
+As an alternative solution, we can think of securing ``transferFrom`` method instead of ``approve`` method. ERC20 standard emphasizes that:
 
 .. figure:: images/multiple_withdrawal_30.png
     :scale: 85%
@@ -430,12 +437,12 @@ Hence, adjusting allowance will violate this constraint of ERC20 standard. Since
 So, the goal is to prevent spender from transferring more tokens than allowed by the approve. Based on this impression, we should not consider allowance as the main factor. Transferred tokens should be considered as the main variable in calculations. For example:
 
 #. Alice allowed Bob for transferring 100 tokens and decides to set it to 70 after a while.
-#. Bob front runs Alice's transaction and transfers 100 tokes (Legit transfer)
+#. Bob front runs Alice's transaction and transfers 100 tokes (legitimate transfer).
 #. Alice's transaction is mined and sets Bob allowance to 80.
-#. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transfered more than 80, his trasanction will fail and prevent multiple withdrawal.
-#. Bob'a allowance stays as 80, however, he can not use it.
+#. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transferred more than 80, his transaction will fail and prevent multiple withdrawal.
+#. Bob's allowance stays as 80, however, he can not use it.
 
-So, here allowance can be considered as **possible allowance** or **potential allowance**. It indicates that Bob is elligible to transfer up to allowance limit if he has not already transferred anytokens. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method:
+Here allowance can be considered as **possible allowance** or **potential allowance**. It indicates that Bob is eligible to transfer up to allowance limit if he has not already transferred any tokens. ``transferred`` is life time variable that accumulates transferred tokens regardless of allowance change. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method as below:
 
 .. figure:: images/multiple_withdrawal_31.png
     :scale: 100%
@@ -454,7 +461,7 @@ https://rinkeby.etherscan.io/address/0x55b9871e66976cb4263c13a9c9e250e31a880b8f
 
 Conclusion
 **********
-Based on ERC20 specifications, token owners should be aware of their approval consequences. If they approve someone to transfer N tokens, spender can transfer exactly N tokens, even if they change allowance to zero afterward. This is considered a legitimate transaction and responsibility of approver before allowing the spender to transfer tokens. An attack can happen when changing allowance from N to M, that allows spender to transfer N+M tokens and effect multiple withdrawal attack. This attack is possible in case of front-running by approved side. As we evaluated possible solutions, all approaches violate ERC20 specifications or have not addressed the attack completely. Proposal 1 uses CAS pattern for checking and setting new allowance atomically. In proposal 2, transfer function is secured instead of approve method. We implemented an ERC20 token for each proposal that solve this security issue while keeping backward compatibly with already deployed smart contracts or wallets. Although these implementations consumes more Gas than standard ERC20 implementation, they are secure and could be considered for future ERC20 token deployment.
+Based on ERC20 specifications, token owners should be aware of their approval consequences. If they approve someone to transfer N tokens, the spender can transfer exactly N tokens, even if they change allowance to zero afterward. This is considered a legitimate transaction and responsibility of approver before allowing the spender for transferring any tokens. An attack can happen when changing allowance from N to M, that allows spender to transfer N+M tokens and effect multiple withdrawal attack. This attack is possible in case of front-running by approved side. As we evaluated possible solutions, all approaches violate ERC20 specifications or have not addressed the attack completely. Proposal 1 uses CAS pattern for checking and setting new allowance atomically. In proposal 2, ``transferFrom`` function is secured instead of ``approve`` method. We implemented an ERC20 token for each proposal that solve this security issue while keeping backward compatibly with already deployed smart contracts or wallets. Although these implementations consume more Gas than standard ERC20 implementations, they are secure and could be considered for future ERC20 token deployment.
 
 |
 |
