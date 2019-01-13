@@ -46,3 +46,5 @@ html_logo = 'images/logo.png'
 html_show_copyright = False
 html_show_sphinx = False
 todo_include_todos = True
+def setup(app):
+    app.add_stylesheet('css/custom.css')
