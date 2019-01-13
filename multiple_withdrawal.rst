@@ -250,10 +250,17 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 Comparing solutions
 ****************************
-Analyzing suggested solutions indicate the following constraints have to satisfy for a sustainable:
+Analyzing suggested solutions indicate the following constraints to be satisfied for a sustainable solution:
 
-#. **Backwards compatibility with contracts deployed before:** requires secure implementation of ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be kept as defined by the ERC20 standard. ``approve`` method sets new allowance for spender, not adjusting it by increasing or decreasing its current value (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`).
-#. **Preventing race condition in any situation:** requires attack prevention in any cases. Using ``Transfer`` event or comparing remaining allowance would be sufficient. Moreover, using the default ``approve`` and ``transferFrom`` methods has to mitigate the attack and not using other complemetary methods.
+#. Calling ``approve`` function has to overwrite current allowance with new allowance.
+#. ``approve`` method does not adjust allowance, it sets new allowance.
+#. Transferring 0 values by ``transferFrom`` method MUST be treated as normal transfers and fire the ``Transfer`` event.
+#. Introducing new methods violates ERC20 specifications and it should be avoided for having compatible token with already deployed smart contracts.
+#. Spender will be allowed to withdraw from approver account multiple times, up to the allowed amount.
+#. Transferring initial allowed tokens is considered as legitimate transfer.
+#. Race condition MUST not happen in any cases for preventing multiple withdrawal from approver token pool.
+
+Comparing suggested solutions shows that they cannot satisfy at least one of the above constraints:
 
 .. figure:: images/multiple_withdrawal_27.png
     :scale: 90%
@@ -261,15 +268,6 @@ Analyzing suggested solutions indicate the following constraints have to satisfy
     
     *Table 2: Comparing suggested solutions*
     
-Overall, new proposals have to satisfy these considtions:
-
-#. Calling ``approve`` function overwrites the current allowance with new value.
-#. ``approve`` method does not adjust allowance, it sets new value for allowance.
-#. Transferring 0 values by ``transferFrom`` method MUST be treated as normal transfers and fire the Transfer event.
-#. New methods violates ERC20 specifications and makes token to be incompatible with already deployed smart contracts.
-#. Spender will be allowed to withdraw from approver account multiple times, up to the allowed amount.
-#. Transfering initial allowed tokens is considered as legitimate transfer.
-#. Race considtion MUST not happen to prevent the attack.
 
 Proposal 1
 **********
