@@ -250,7 +250,7 @@ After recognition of this security vulnerability, new standards like `ERC233 <ht
     
 Comparing solutions
 ****************************
-Analyzing suggested fixes indicate the following constraints to satisfy:
+Analyzing suggested solutions indicate the following constraints have to satisfy for a sustainable:
 
 #. **Backwards compatibility with contracts deployed before:** requires secure implementation of ``approve`` and ``transferFrom`` methods without adding a new functions (like ``safeApprove`` - :ref:`alternate_approval_function`). Additionally, functionality of ``approve`` methode must be kept as defined by the ERC20 standard. ``approve`` method sets new allowance for spender, not adjusting it by increasing or decreasing its current value (as implemented in ``increaseApproval`` or ``decreaseApproval`` - :ref:`monolithDAO_Token`).
 #. **Preventing race condition in any situation:** requires attack prevention in any cases. Using ``Transfer`` event or comparing remaining allowance would be sufficient. Moreover, using the default ``approve`` and ``transferFrom`` methods has to mitigate the attack and not using other complemetary methods.
