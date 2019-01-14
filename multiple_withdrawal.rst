@@ -216,7 +216,7 @@ This `approach <https://github.com/ethereum/EIPs/issues/738#issuecomment-3739359
     
     *Figure 14: Keeping track of remaining tokens*
 
-At first, it seems that this solution is a sustainable way to mitigate the attack by setting apprval to zero before non-zero values. However, the highlighted code resembles the situation that we explained in :ref:`ui_enforcement`:
+At first, it seems that this solution is a sustainable way to mitigate the attack by setting approval to zero before non-zero values. However, the highlighted code resembles the situation that we explained in :ref:`ui_enforcement`:
 
 #. Bob's allowance is initially zero (``allowances[_AliceAddr][_BobAddr].initial=0``, ``allowances[msg.sender][spender].residual=0``).
 #. Alice allows Bob to transfer N tokens (``allowances[_AliceAddr][_BobAddr].initial=N``, ``allowances[_AliceAddr][_BobAddr].residual=N``).
@@ -442,7 +442,7 @@ So, the goal is to prevent spender from transferring more tokens than allowed by
 #. Bob got new allowance and runs ``transferFrom(_BobAddr,80)``. Since he already transferred more than 80, his transaction will fail and prevent multiple withdrawal.
 #. Bob's allowance stays as 80, however, he can not use it.
 
-Here allowance can be considered as **possible allowance** or **potential allowance**. It indicates that Bob is eligible to transfer up to allowance limit if he has not already transferred any tokens. ``transferred`` is life time variable that accumulates transferred tokens regardless of allowance change. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method as below:
+Here allowance can be considered as maximum allowance. It indicates that Bob is eligible to transfer up to specified limit if he has not already transferred any tokens. In fact, there is no relation between allowance (``allowed[_from][msg.sender]``) and transferred tokens (``transferred[_from][msg.sender]``). The fist variable shows maximum transferrable tokens by a spender and can be changed irrelative to transferred tokens (``approve`` method does not check transferred tokens). If Bob has not already transferred that much of tokens, he would be able to transfer difference of it ``allowed[_from][msg.sender].sub(transferred[_from][msg.sender])``. In other words, ``transferred`` is life time variable that accumulates transferred tokens regardless of allowance change. So, by this assumption, we can secure ``transferFrom`` method instead of ``approve`` method as below:
 
 .. figure:: images/multiple_withdrawal_31.png
     :scale: 100%
