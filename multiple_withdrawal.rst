@@ -458,6 +458,7 @@ https://rinkeby.etherscan.io/address/0x5d148c948c01e1a61e280c8b2ac39fd49ee6d9c6
     
     *Figure 27: Proposed ERC20 implementation on Rinkby test network*
 
+Gas consumption of ``transferFrom`` function is around 37% more than standard implementation which is acceptable for having a secure ERC20 token.
 
 Conclusion
 **********
