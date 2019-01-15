@@ -8,7 +8,7 @@ Multiple withdrawal attack
 
 Description
 ***********
-`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines required APIs [#]_ for approving and transferring tokens from an approver. By these APIs, tokens can be spent by another third party (e.g., approved spender, online exchanges, third-party payments, or quantitative fund managemer) on behalf of the owner. 
+`ERC20 standard <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md>`_ defines required APIs [#]_ for approving and transferring tokens from an approver. By these APIs, tokens can be spent by another third party (e.g., approved spender, online exchanges, third-party payments, or quantitative fund management) on behalf of the owner. 
 
 .. figure:: images/multiple_withdrawal_01.png
     :scale: 90%
@@ -33,11 +33,11 @@ This issue is still open since October 2017 and several suggestions have been ma
 
 #. Alice allows Bob to transfer N tokens by calling ``approve(_BobAddr, N)``.
 #. After a while, Alice decides to change approval from N to M by executing ``approve(_BobAddr, M)``.
-#. Bob notices Alice's second transaction before it was mined and quickly sends another transaction that runs ``transferFrom(_AlicAddr, _BobAddr, N)``. This will transfer N Alice's tokens to Bob.
+#. Bob notices Alice's second transaction before it was mined and quickly sends another transaction that runs ``transferFrom(_AliceAddr, _BobAddr, N)``. This will transfer N Alice's tokens to Bob.
 #. Bob's transaction will be executed before Alice's transaction (because of higher transaction fee, miner’s policy or other prioritization ways) and Bob front-runs Alice's transaction.
 #. Alice’s transaction will be executed after Bob’s and allows Bob to transfer more M tokens.
 #. Bob successfully transferred N Alice's tokens and gains ability of transferring another M tokens.
-#. Before Alice notices that something went wrong, Bob calls ``transferFrom`` method again and transfers M Alice's tokens by executing ``transferFrom(_AlicAddr, _BobAddr, M)``.
+#. Before Alice notices that something went wrong, Bob calls ``transferFrom`` method again and transfers M Alice's tokens by executing ``transferFrom(_AliceAddr, _BobAddr, M)``.
 
 In fact, Alice attempted to change Bob's allowance from N to M, but she made it possible for Bob to transfer N+M of her tokens at most, while Alice never wanted to allow so many transfers by Bob:
 
@@ -103,7 +103,7 @@ Approving token transfer to non-upgradable smart contracts can be considered saf
 
 However, upgradable smart contracts may add new logic to a new version that needs re-verification before approving token transfer. Similarly, approving token transfer to people that we trust could be considered as a mitigation plan. Since this solution would have limited use cases, it could not be considered as a comprehensive solution for the attack.
 
-.. _minimi_token:
+.. _minime_token:
 
 4. MiniMeToken implementation
 =============================
@@ -154,7 +154,7 @@ These two functions can address race condition and prevent allowance double-spen
 
 #. Alice allows Bob to transfer N tokens by calling ``approve(_BobAddr, N)``. This will be executed by ``approve`` function since current Bob’s allowance is 0.
 #. After a while, Alice decides to decrease Bob’s approval by M by running ``decreaseApproval(_BobAddr, M)``.
-#. Bob notices Alice's second transaction and front runs it by executing ``transferFrom(_AlicAddr, _BobAddr, N)``.
+#. Bob notices Alice's second transaction and front runs it by executing ``transferFrom(_AliceAddr, _BobAddr, N)``.
 #. Bob’s transaction will be executed first and transfers N token to his account and the his allowance becomes 0 as result of this transfer.
 #. Alice’s transaction is mined after Bob’s transaction and tries to decrease Bob’s allowance by M. If Bob had already transferred more than M tokens, new Bob’s allowance becomes negative and it fails the transaction. So, the transaction does not change Bob's remaining allowance and he would be able to transfer the rest (which is legitimate transfer since Alice has already approved it). If Bob had transferred less than M tokens, the new allowance will be applied and reduces Bob's allowance by M.
 
@@ -182,7 +182,7 @@ In `this approach <https://gist.github.com/flygoing/2956f0d3b5e662a44b83b8e4bec6
     :scale: 90%
     :figclass: align-center
     
-    *Figure 12: Using a boolean variable to keeping track of transfered tokens*
+    *Figure 12: Using a boolean variable to keeping track of transferred tokens*
    
 This approach could prevent race condition as described below:
 
@@ -272,7 +272,7 @@ Comparing suggested solutions shows that they cannot satisfy at least one of the
     
 Proposal 1
 **********
-As the comparison table shows, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard advises approvers to change spender allowance from N to 0 and then from 0 to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running. As discussed in :ref:`minimi_token` implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events (logged by ``transferFrom``), it would not be easily trackable in case of transferring to a third-party (Alice -> Bob, Bob -> Carole => Alice -> Carole).
+As the comparison table shows, a new solution is required to address this security vulnerability while adhering specification of ERC20 standard. The standard advises approvers to change spender allowance from N to 0 and then from 0 to M (instead of changing it directly from N to M). Since there are gaps between transactions, it would be always a possibility of front-running. As discussed in :ref:`minime_token` implementation, changing allowance to non-zero values after setting to zero, will require tracking of transferred tokens by the spender. If we can not track transferred tokens, we would not be able to identify if any token has been transferred between execution of transactions. Although It would be possible to track transferred token through ``Transfer`` events (logged by ``transferFrom``), it would not be easily trackable in case of transferring to a third-party (Alice -> Bob, Bob -> Carole => Alice -> Carole).
 
 The only solution that removes this gap is to use compare and set (CAS) pattern :cite:`Ref06`. It is one of the most widely used lock-free synchronization strategy that allows comparing and setting values in an atomic way. It allows to compare values in one transaction and set new values before transferring control. To use this pattern and track transferred tokens, we would need to add a new mapping variable to our ERC20 token. This change will still keep the token code compatible with other smart contracts due to internal usage of the variable:
 
@@ -450,7 +450,7 @@ Here allowance can be considered as maximum allowance. It indicates that Bob is 
     
     *Figure 26: Securing transferFrom method instead of approve method*
     
-https://rinkeby.etherscan.io/address/0x55b9871e66976cb4263c13a9c9e250e31a880b8f
+https://rinkeby.etherscan.io/address/0x5d148c948c01e1a61e280c8b2ac39fd49ee6d9c6
 
 .. figure:: images/multiple_withdrawal_32.png
     :scale: 80%
