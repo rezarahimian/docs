@@ -4,7 +4,7 @@
 Introduction
 ############
 
-ERC20 [#]_ in Ethereum [#]_ ecosystem is a standard that allows representing tangible assets as intangible instances. For example shares of company X can be represented as ERC20 token [#]_ to be tradable or re-used by other DApps [#]_. By using ERC20 tokens, we would be able to implement the left side of the following trading model:
+ERC20 [#]_ in Ethereum [#]_ ecosystem is a standard that allows representation of tangible assets as intangible instances. For example shares of company X can be represented as ERC20 tokens [#]_. This conversion makes it possible to trade or exchange by other DApps [#]_. Leveraging ERC20 tokens facilitate implementation of the left side of the below trading model on the Blockchain:
 
 .. figure:: images/erc20_intro_01.png
     :scale: 60%
@@ -12,15 +12,15 @@ ERC20 [#]_ in Ethereum [#]_ ecosystem is a standard that allows representing tan
     
     *Figure 1: A blockchain trading model using ERC20 tokens*
 
-The right side of this trading model needs an intangible asset which is equivalent to a fiat currency (Like USD or CAD) [#]_. So, the value of it is stable over time and people be able to count on its value. Stablecoins provide such functionalities in blockchain by pegging to something that has a stable value (Like gold or USD). There would be three types of stablecoins :cite:`Ref09` that can be used in this trading model:
+The right side of the model needs a financial asset which is equivalent to a fiat currency (Like USD or CAD) [#]_. So, the value of it will be stable over time and people be able to count on its value. Stablecoins provide such functionalities in blockchain by pegging to something that has a stable value (Like gold or USD). There would be, essentially, three types of stablecoins :cite:`Ref09` that can be used:
 
-#. **Fiat-collateralized:** It will be backed by the equivalent fiat currency.
+#. **Fiat-collateralized:** It is backed by the equivalent fiat currency.
 #. **Crypto-collateralized:** It uses other cryptocurrencies as collateral.
-#. **Non-collateralized:** It is not backed by any collateral. It is similar to other fiat currencies that it is maintained by governments.
+#. **Non-collateralized:** It is not backed by any collateral. It is similar to other fiat currencies that are maintained by governments.
 
-Representation of an stablecoin could be also through ERC20 standard. The only difference is that engaging parties of the exchange agreed on the value of the stablecoin (which is 1 CADT = 1 $CAD). By repressing share of company X and canadian dollar as ERC20 tokens, we would have two ERC20 tokens (with different values) to trade.
+Representation of an stablecoin could be also by ERC20 tokens (like CADT). Value of it comes from engaging parties of the exchange who agreed on the value (i.e., 1 CADT worths 1 $CAD). Assuming share of company X and canadian dollar as ERC20 tokens, provide two ERC20 tokens (with different values) to trade.
 
-As originally mentioned, ERC20 tokens are standardized version of smart contracts with pre-defined API :cite:`Ref08`. Similar to other smart contracts, there are security vulnerabilities on them. Some of these vulnerabilities have been already discovered and handled by the Ethereum community. Here, we introduce a new solution to :ref:`multiple_withdrawal` by analyzing solutions that have been already discovered. Ultimately, the goal is to introduce a secure ERC20 code that could mitigate against identified/potential security vulnerabilities.
+Besides tradability of ERC20 tokens as a financial property, they are technically standardized version of smart contracts :cite:`Ref08`. Similar to any other programs, written code could be vulnerable against security flaws. Some of these security vulnerabilities have been already discovered and handled by the Ethereum community. Here, we introduce a new solution to one of open issues (:ref:`multiple_withdrawal`) and incorporate other known solutions. Ultimately, the goal is to introduce a secure ERC20 code that could mitigate against all identified security vulnerabilities.
 
 |
 |
@@ -29,9 +29,9 @@ As originally mentioned, ERC20 tokens are standardized version of smart contract
 .. rubric:: Footnotes
 .. [#] Technical standard used on the Ethereum blockchain for implementing tokens.
 .. [#] Ethereum is a decentralized platform that runs distributed applications.
-.. [#] A token can be considered as a virtual asset acts as currency that has value to trade.
+.. [#] A token can be considered as a virtual asset acts as fiat currency that has value to trade.
 .. [#] Distributed applications (DApps) run on blockchain and synchronize data through consensus mechanism.
-.. [#] Fiat currency does not have underlying value. The value is because of government who maintains it.
+.. [#] Fiat currency (money) does not have any intrinsic value. Its value comes from public faith in the issuer (e.g., government who maintains it).
 
 |
 |
