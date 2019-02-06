@@ -89,7 +89,7 @@ As suggested by :cite:`Ref05`, we can boil down ERC20 standard to a very basic f
     
     *Figure 5: Minimum viable ERC20 token implementation*
 
-While removing ``approve`` and ``transferFrom`` functions prevent multiple withdrawal attack, it makes this token incompatible with ERC20 standards. According to ERC20 specifications, these methods are not OPTIONAL and must be implemented. Moreover, ignoring them will cause failed function calls by standard wallets that expect to interact with them. So, we would not consider this solution as a compatible fix although mitigates the attack.
+While removing ``approve`` and ``transferFrom`` functions prevent multiple withdrawal attack, it makes the token partially-ERC20-compliant. `Golem Network Token (GNT) <https://etherscan.io/address/0xa74476443119A942dE498590Fe1f2454d7D4aC0d#code>`_ is one of these examples since it does not implement the ``approve``, ``allowance`` and ``transferFrom`` functions. According to ERC20 specifications, these methods are not OPTIONAL and must be implemented. Moreover, ignoring them will cause failed function calls by standard wallets that expect to interact with them. So, we would not consider this solution as a compatible fix although mitigates the attack.
 
 3. Approving token transfer to verified smart contract or trusted third-party
 ==============================================================================
