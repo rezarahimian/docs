@@ -1,8 +1,8 @@
 .. _overflow_attack:
 
-###############
-Overflow attack
-###############
+###########################################
+Overflow attack in Ethereum smart contracts
+###########################################
 
 .. index:: ! overflow attack, batchOverflow attack, proxyOverflow attack;
     
