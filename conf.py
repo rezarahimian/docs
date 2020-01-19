@@ -1,6 +1,6 @@
 extensions = ['sphinxcontrib.bibtex','sphinx.ext.mathjax','sphinx.ext.todo','sphinx_copybutton']
 master_doc = 'index'
-project = u'Blockchain projects'
+project = u'Projects'
 copyright = u'-'
 author = u'-'
 show_authors = True
